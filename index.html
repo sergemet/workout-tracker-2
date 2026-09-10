@@ -1,0 +1,1117 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Трекер тренировок</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#17181A;
+  --card:#212226;
+  --card-2:#2A2B30;
+  --line:#34363B;
+  --text:#EDEAE5;
+  --muted:#9B9B95;
+  --rust:#C1440E;
+  --rust-dim:#7A2C0A;
+  --steel:#4E7C9B;
+  --ok:#7DA37E;
+  --warn:#D9A441;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',system-ui,sans-serif;
+  padding-bottom:90px;
+  -webkit-tap-highlight-color:transparent;
+}
+
+header{
+  padding:22px 18px 16px;
+  border-bottom:1px solid var(--line);
+}
+header h1{
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:24px;
+  letter-spacing:0.3px;
+  margin:0 0 2px;
+  text-transform:uppercase;
+}
+header p{
+  margin:0 0 12px;
+  color:var(--muted);
+  font-size:13px;
+}
+.bw-setting{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.bw-setting label{
+  font-size:12px;
+  color:var(--muted);
+}
+.bw-setting input{
+  width:60px;
+  background:var(--card);
+  border:1px solid var(--line);
+  color:var(--text);
+  border-radius:7px;
+  padding:6px 8px;
+  font-family:'Inter',sans-serif;
+  font-size:13.5px;
+  text-align:center;
+}
+.bw-setting span{
+  font-size:12px;
+  color:var(--muted);
+}
+.sync-status{
+  margin:8px 0 0;
+  font-size:11.5px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.sync-status .dot{
+  width:7px;height:7px;
+  border-radius:50%;
+  background:var(--muted);
+  flex-shrink:0;
+}
+.sync-status.on{color:var(--ok);}
+.sync-status.on .dot{background:var(--ok);}
+.sync-status.off{color:var(--muted);}
+.sync-status.off .dot{background:var(--muted);}
+
+nav{
+  position:sticky;
+  top:0;
+  z-index:10;
+  display:flex;
+  background:var(--bg);
+  border-bottom:1px solid var(--line);
+  overflow-x:auto;
+  max-width:640px;
+  margin:0 auto;
+  width:100%;
+}
+nav button{
+  flex:1;
+  min-width:84px;
+  background:none;
+  border:none;
+  color:var(--muted);
+  font-family:'Oswald',sans-serif;
+  font-size:12.5px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.4px;
+  padding:14px 6px 12px;
+  border-bottom:3px solid transparent;
+  cursor:pointer;
+}
+nav button.active{
+  color:var(--text);
+  border-bottom-color:var(--rust);
+}
+
+main{padding:16px;max-width:640px;margin:0 auto;}
+
+.day-date{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:14px;
+  gap:10px;
+}
+.day-date label{
+  font-size:12px;
+  color:var(--muted);
+  display:block;
+  margin-bottom:4px;
+}
+.day-date input[type="date"]{
+  background:var(--card);
+  border:1px solid var(--line);
+  color:var(--text);
+  border-radius:8px;
+  padding:8px 10px;
+  font-family:'Inter',sans-serif;
+  font-size:14px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:14px 14px 10px;
+  margin-bottom:12px;
+}
+.ex-head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:2px;
+}
+.ex-name{
+  font-family:'Oswald',sans-serif;
+  font-weight:600;
+  font-size:15.5px;
+  line-height:1.25;
+}
+.ex-tag{
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:0.5px;
+  color:var(--rust);
+  border:1px solid var(--rust-dim);
+  border-radius:5px;
+  padding:2px 6px;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.ex-sub{
+  color:var(--muted);
+  font-size:12px;
+  margin-bottom:10px;
+}
+
+.round{
+  border-top:1px solid var(--line);
+  padding:9px 0;
+}
+.round:first-of-type{border-top:none;padding-top:4px;}
+.round-label{
+  font-size:11.5px;
+  color:var(--muted);
+  margin-bottom:6px;
+  font-weight:500;
+}
+.comp{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:6px;
+  flex-wrap:wrap;
+}
+.comp:last-child{margin-bottom:0;}
+.comp-label{
+  font-size:12.5px;
+  color:var(--text);
+  flex:1 1 auto;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.comp-target{
+  color:var(--muted);
+  font-size:11px;
+  flex-shrink:0;
+}
+.field{
+  display:flex;
+  align-items:center;
+  background:var(--card-2);
+  border:1px solid var(--line);
+  border-radius:7px;
+  overflow:hidden;
+  flex-shrink:0;
+}
+.field input{
+  width:46px;
+  background:none;
+  border:none;
+  color:var(--text);
+  font-size:14px;
+  padding:7px 4px;
+  text-align:center;
+  font-family:'Inter',sans-serif;
+}
+.field input:focus{outline:none;background:#33353b;}
+.field span{
+  font-size:10px;
+  color:var(--muted);
+  padding-right:6px;
+}
+.field.sep{border-left:1px solid var(--line);border-radius:0 7px 7px 0;}
+.field.first{border-radius:7px 0 0 7px;}
+.field.solo{border-radius:7px;}
+
+.bw-group{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-shrink:0;
+  flex-wrap:wrap;
+}
+.bw-toggle{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-size:11px;
+  color:var(--steel);
+  border:1px solid var(--steel);
+  border-radius:20px;
+  padding:5px 9px 5px 7px;
+  cursor:pointer;
+  user-select:none;
+  flex-shrink:0;
+}
+.bw-toggle input{
+  width:13px;height:13px;
+  accent-color:var(--steel);
+  margin:0;
+}
+
+.save-bar{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  background:linear-gradient(180deg, rgba(23,24,26,0) 0%, var(--bg) 35%);
+  padding:22px 16px 16px;
+  display:flex;
+  gap:10px;
+  max-width:640px;
+  margin:0 auto;
+}
+.save-bar button{
+  flex:1;
+  background:var(--rust);
+  color:#fff;
+  border:none;
+  border-radius:9px;
+  padding:13px;
+  font-family:'Oswald',sans-serif;
+  font-weight:600;
+  font-size:14.5px;
+  text-transform:uppercase;
+  letter-spacing:0.4px;
+  cursor:pointer;
+}
+.save-bar button:active{background:#9c3608;}
+
+.toast{
+  position:fixed;
+  bottom:78px;
+  left:50%;
+  transform:translateX(-50%) translateY(10px);
+  background:var(--card-2);
+  border:1px solid var(--line);
+  color:var(--text);
+  padding:10px 16px;
+  border-radius:9px;
+  font-size:13px;
+  max-width:90%;
+  opacity:0;
+  transition:opacity .25s, transform .25s;
+  pointer-events:none;
+  text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.history-item{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:12px 14px;
+  margin-bottom:10px;
+}
+.history-item .hi-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  cursor:pointer;
+}
+.history-item .hi-date{
+  font-family:'Oswald',sans-serif;
+  font-weight:600;
+  font-size:14px;
+}
+.history-item .hi-day{
+  color:var(--rust);
+  font-size:12px;
+  font-weight:600;
+  text-transform:uppercase;
+}
+.history-item .hi-tonnage{
+  color:var(--muted);
+  font-size:12px;
+}
+.history-item .hi-detail{
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid var(--line);
+  font-size:12.5px;
+  color:var(--muted);
+  display:none;
+}
+.history-item .hi-detail.open{display:block;}
+.history-item .hi-detail div{margin-bottom:4px;}
+.history-item .hi-detail b{color:var(--text);font-weight:500;}
+.hi-editrow{margin-top:8px;}
+.hi-edit-btn{
+  background:none;
+  border:none;
+  color:var(--steel);
+  font-size:11.5px;
+  padding:0;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+}
+.hi-edit-form{
+  display:none;
+  align-items:center;
+  gap:8px;
+  margin-top:8px;
+}
+.hi-edit-form.open{display:flex;}
+.hi-edit-form input[type="date"]{
+  background:var(--card-2);
+  border:1px solid var(--line);
+  color:var(--text);
+  border-radius:7px;
+  padding:6px 8px;
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+}
+.hi-edit-form button{
+  background:var(--steel);
+  color:#fff;
+  border:none;
+  border-radius:7px;
+  padding:6px 10px;
+  font-size:12px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+}
+.empty{
+  color:var(--muted);
+  font-size:13.5px;
+  text-align:center;
+  padding:40px 10px;
+}
+.progress-block{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:14px;
+  margin-bottom:16px;
+}
+.progress-block .pb-title{
+  font-family:'Oswald',sans-serif;
+  font-weight:600;
+  font-size:14px;
+  text-transform:uppercase;
+  letter-spacing:0.3px;
+  margin-bottom:10px;
+}
+.progress-block select{
+  width:100%;
+  background:var(--card-2);
+  border:1px solid var(--line);
+  color:var(--text);
+  border-radius:7px;
+  padding:9px 10px;
+  font-family:'Inter',sans-serif;
+  font-size:13.5px;
+  margin-bottom:12px;
+}
+.progress-block .chart-wrap{
+  position:relative;
+  height:200px;
+}
+.progress-block .no-data{
+  color:var(--muted);
+  font-size:12.5px;
+  text-align:center;
+  padding:30px 0;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Точка железа</h1>
+  <p>Программа от тренера · прогрессия и учёт по факту</p>
+  <div class="bw-setting">
+    <label>Твой вес</label>
+    <input type="number" step="0.1" id="bwInput">
+    <span>кг — используется для упражнений «свой вес»</span>
+  </div>
+  <p class="sync-status off" id="syncStatus"><span class="dot"></span>проверяю Telegram…</p>
+</header>
+
+<nav id="tabs"></nav>
+
+<main id="main"></main>
+
+<div class="save-bar" id="saveBar">
+  <button id="saveBtn">Сохранить тренировку</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PROGRAM = [
+  {
+    id:'day1', label:'Грудь + Спина',
+    exercises:[
+      {id:'d1e1', name:'Подтягивания широким хватом (классика/резина)', sets:4,
+        components:[{key:'a', label:'Повторения', target:'8-10', weight:true, bodyweightOption:true}]},
+      {id:'d1e2', name:'Жим штанги лёжа на горизонтальной скамье', sets:4,
+        components:[{key:'a', label:'', target:'8-10', weight:true}]},
+      {id:'d1e3', name:'Тяга верхнего блока к груди', sets:3,
+        components:[{key:'a', label:'', target:'10-12', weight:true}]},
+      {id:'d1e4', name:'Жим гантелей на наклонной скамье (+30°)', sets:3,
+        components:[{key:'a', label:'', target:'10-12', weight:true}]},
+      {id:'d1e5', name:'Тяга нижнего блока', sets:3,
+        components:[{key:'a', label:'', target:'10-12', weight:true}]},
+      {id:'d1e6', name:'Сведение рук в тренажёре (пек-дек)', sets:3,
+        components:[{key:'a', label:'', target:'12-15', weight:true}]},
+      {id:'d1e7', name:'Пресс — суперсет: подъём коленей в висе + боковая планка', tag:'СУПЕРСЕТ', sets:3,
+        components:[
+          {key:'a', label:'Подъём коленей', target:'12-15', weight:true, bodyweightOption:true},
+          {key:'b', label:'Планка вправо', target:'30 сек', weight:false, time:true},
+          {key:'c', label:'Планка влево', target:'30 сек', weight:false, time:true}
+        ]}
+    ]
+  },
+  {
+    id:'day2', label:'Ноги',
+    exercises:[
+      {id:'d2e1', name:'Приседания в Гакк-тренажёре', sets:4,
+        components:[{key:'a', label:'', target:'8-12', weight:true}]},
+      {id:'d2e2', name:'Румынская тяга со штангой', sets:3,
+        components:[{key:'a', label:'', target:'10-12', weight:true}]},
+      {id:'d2e3', name:'Суперсет: жим ногами + разгибание ног сидя', tag:'СУПЕРСЕТ', sets:3,
+        components:[
+          {key:'a', label:'Жим ногами', target:'12-15', weight:true},
+          {key:'b', label:'Разгибание ног', target:'12-15', weight:true}
+        ]},
+      {id:'d2e4', name:'Сгибание ног лёжа в тренажёре', sets:3,
+        components:[{key:'a', label:'', target:'12-15', weight:true}]},
+      {id:'d2e5', name:'Подъём на носки стоя в тренажёре', sets:4,
+        components:[{key:'a', label:'', target:'15-20', weight:true}]}
+    ]
+  },
+  {
+    id:'day3', label:'Дельты + Руки',
+    exercises:[
+      {id:'d3e1', name:'Пек-дек на заднюю дельту', tag:'ДРОПСЕТ', sets:4,
+        components:[
+          {key:'a', label:'Рабочий вес', target:'12-15', weight:true},
+          {key:'b', label:'Дропсет (−20–30%)', target:'10-12', weight:true}
+        ]},
+      {id:'d3e2', name:'Жим штанги/гантелей вверх над головой сидя', sets:4,
+        components:[{key:'a', label:'', target:'8-12', weight:true}]},
+      {id:'d3e3', name:'Махи с гантелями в стороны сидя', sets:3,
+        components:[{key:'a', label:'', target:'12-15', weight:true}]},
+      {id:'d3e4', name:'Французский жим', sets:3,
+        components:[{key:'a', label:'', target:'10-12', weight:true}]},
+      {id:'d3e5', name:'Подъём штанги на бицепс стоя', sets:3,
+        components:[{key:'a', label:'', target:'8-12', weight:true}]},
+      {id:'d3e6', name:'Суперсет: кроссовер на трицепс + молотки с гантелями', tag:'СУПЕРСЕТ', sets:3,
+        components:[
+          {key:'a', label:'Кроссовер (трицепс)', target:'12-15', weight:true},
+          {key:'b', label:'Молотки (на руку)', target:'10-12', weight:true}
+        ]},
+      {id:'d3e7', name:'Пресс — круг: скручивания лёжа + свеча + планка', tag:'КРУГ БЕЗ ОТДЫХА', sets:3,
+        components:[
+          {key:'a', label:'Скручивания лёжа', target:'15-20', weight:true, bodyweightOption:true},
+          {key:'b', label:'Свеча', target:'12-15', weight:true, bodyweightOption:true},
+          {key:'c', label:'Планка', target:'40-60 сек', weight:false, time:true}
+        ]}
+    ]
+  }
+];
+
+const STORE_KEY = 'ironpoint_tracker_v1';
+const CLOUD_META_KEY = 'ip_meta';
+const CLOUD_CHUNK_PREFIX = 'ip_chunk_';
+const CLOUD_CHUNK_SIZE = 3500;
+const DEFAULT_BW = 81;
+
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if(tg){
+  tg.ready();
+  tg.expand();
+}
+function cloudAvailable(){
+  return !!(tg && tg.CloudStorage);
+}
+
+function defaultStore(){
+  return {sessions:[], lastByDay:{}, settings:{bodyweight: DEFAULT_BW}};
+}
+
+function loadLocalStore(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(!parsed.settings) parsed.settings = {bodyweight: DEFAULT_BW};
+      if(parsed.settings.bodyweight == null) parsed.settings.bodyweight = DEFAULT_BW;
+      return parsed;
+    }
+  }catch(e){}
+  return defaultStore();
+}
+
+function saveLocalStore(store){
+  localStorage.setItem(STORE_KEY, JSON.stringify(store));
+}
+
+function cloudGetItem(key){
+  return new Promise(resolve=>{
+    tg.CloudStorage.getItem(key, (err, value)=> resolve(err ? null : value));
+  });
+}
+function cloudSetItem(key, value){
+  return new Promise(resolve=>{
+    tg.CloudStorage.setItem(key, value, ()=> resolve());
+  });
+}
+function cloudRemoveItem(key){
+  return new Promise(resolve=>{
+    tg.CloudStorage.removeItem(key, ()=> resolve());
+  });
+}
+
+async function cloudLoadStore(){
+  try{
+    const metaRaw = await cloudGetItem(CLOUD_META_KEY);
+    if(!metaRaw) return null;
+    const meta = JSON.parse(metaRaw);
+    let json = '';
+    for(let i=0; i<meta.count; i++){
+      const part = await cloudGetItem(CLOUD_CHUNK_PREFIX + i);
+      if(part == null) return null;
+      json += part;
+    }
+    const parsed = JSON.parse(json);
+    if(!parsed.settings) parsed.settings = {bodyweight: DEFAULT_BW};
+    return parsed;
+  }catch(e){
+    return null;
+  }
+}
+
+let lastCloudChunkCount = 0;
+async function cloudSaveStore(store){
+  if(!cloudAvailable()) return;
+  const json = JSON.stringify(store);
+  const chunks = [];
+  for(let i=0; i<json.length; i+=CLOUD_CHUNK_SIZE){
+    chunks.push(json.slice(i, i+CLOUD_CHUNK_SIZE));
+  }
+  for(let i=0; i<chunks.length; i++){
+    await cloudSetItem(CLOUD_CHUNK_PREFIX + i, chunks[i]);
+  }
+  for(let i=chunks.length; i<lastCloudChunkCount; i++){
+    await cloudRemoveItem(CLOUD_CHUNK_PREFIX + i);
+  }
+  lastCloudChunkCount = chunks.length;
+  await cloudSetItem(CLOUD_META_KEY, JSON.stringify({count: chunks.length}));
+}
+
+function saveStore(store){
+  saveLocalStore(store);
+  if(cloudAvailable()){
+    cloudSaveStore(store).catch(()=>{});
+  }
+}
+
+let store = defaultStore();
+let activeTab = 'day1';
+let currentDate = todayStr();
+
+function todayStr(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+
+function currentBW(){
+  return Number(store.settings.bodyweight) || DEFAULT_BW;
+}
+
+const tabsEl = document.getElementById('tabs');
+const mainEl = document.getElementById('main');
+const saveBar = document.getElementById('saveBar');
+const toastEl = document.getElementById('toast');
+const bwInput = document.getElementById('bwInput');
+const syncStatusEl = document.getElementById('syncStatus');
+
+bwInput.onchange = ()=>{
+  const v = Number(bwInput.value);
+  if(v > 0){
+    store.settings.bodyweight = v;
+    saveStore(store);
+    showToast(`Вес обновлён: ${v} кг`);
+  }
+};
+
+function renderTabs(){
+  tabsEl.innerHTML = '';
+  const items = [...PROGRAM.map(d=>({id:d.id,label:d.label})), {id:'history', label:'История'}];
+  items.forEach(it=>{
+    const btn = document.createElement('button');
+    btn.textContent = it.label;
+    if(it.id === activeTab) btn.classList.add('active');
+    btn.onclick = () => { activeTab = it.id; render(); };
+    tabsEl.appendChild(btn);
+  });
+}
+
+function toggleBW(name){
+  const cb = document.querySelector(`[data-bwtoggle="${name}"]`);
+  const extraWrap = document.getElementById('extraWrap-'+name);
+  const manualWrap = document.getElementById('manualWrap-'+name);
+  if(!cb) return;
+  if(cb.checked){
+    extraWrap.style.display = 'flex';
+    manualWrap.style.display = 'none';
+  }else{
+    extraWrap.style.display = 'none';
+    manualWrap.style.display = 'flex';
+  }
+}
+window.toggleBW = toggleBW;
+
+function fieldHTML(exId, setIdx, comp, placeholder){
+  const name = `${exId}__${setIdx}__${comp.key}`;
+
+  if(comp.time){
+    return `<div class="field solo">
+      <input type="number" inputmode="numeric" data-field="${name}" data-kind="time" placeholder="${placeholder && placeholder.time != null ? placeholder.time : '—'}">
+      <span>сек</span>
+    </div>`;
+  }
+
+  if(comp.bodyweightOption){
+    const wasBW = placeholder ? placeholder.bw !== false : true;
+    const extraPh = (placeholder && placeholder.bw !== false && placeholder.extra != null) ? placeholder.extra : '0';
+    const manualPh = (placeholder && placeholder.bw === false && placeholder.weight != null) ? placeholder.weight : '—';
+    return `
+      <div class="bw-group">
+        <label class="bw-toggle">
+          <input type="checkbox" data-bwtoggle="${name}" ${wasBW ? 'checked' : ''} onchange="toggleBW('${name}')">
+          свой вес
+        </label>
+        <div class="field first" id="extraWrap-${name}" style="display:${wasBW ? 'flex' : 'none'}">
+          <input type="number" step="0.5" inputmode="decimal" data-field="${name}" data-kind="extra" placeholder="${extraPh}">
+          <span>+кг</span>
+        </div>
+        <div class="field first" id="manualWrap-${name}" style="display:${wasBW ? 'none' : 'flex'}">
+          <input type="number" step="0.5" inputmode="decimal" data-field="${name}" data-kind="weight" placeholder="${manualPh}">
+          <span>кг</span>
+        </div>
+      </div>
+      <div class="field ${comp.time ? 'solo' : 'sep'}">
+        <input type="number" inputmode="numeric" data-field="${name}" data-kind="reps" placeholder="${placeholder && placeholder.reps!=null ? placeholder.reps : '—'}">
+        <span>повт</span>
+      </div>`;
+  }
+
+  let html = '';
+  if(comp.weight){
+    html += `<div class="field first">
+      <input type="number" step="0.5" inputmode="decimal" data-field="${name}" data-kind="weight" placeholder="${placeholder && placeholder.weight!=null ? placeholder.weight : '—'}">
+      <span>кг</span>
+    </div>`;
+  }
+  html += `<div class="field ${comp.weight ? 'sep' : 'solo'}">
+    <input type="number" inputmode="numeric" data-field="${name}" data-kind="reps" placeholder="${placeholder && placeholder.reps!=null ? placeholder.reps : '—'}">
+    <span>повт</span>
+  </div>`;
+  return html;
+}
+
+function renderDay(dayId){
+  const day = PROGRAM.find(d=>d.id===dayId);
+  const last = (store.lastByDay[dayId]) || {};
+
+  let html = `
+    <div class="day-date">
+      <div>
+        <label>Дата тренировки</label>
+        <input type="date" id="dateInput" value="${currentDate}">
+      </div>
+    </div>
+  `;
+
+  day.exercises.forEach(ex=>{
+    html += `<div class="card">
+      <div class="ex-head">
+        <div class="ex-name">${ex.name}</div>
+        ${ex.tag ? `<div class="ex-tag">${ex.tag}</div>` : ''}
+      </div>
+      <div class="ex-sub">${ex.sets} подход${ex.sets===1?'':(ex.sets<5?'а':'ов')} · целевой диапазон см. ниже</div>`;
+
+    for(let s=1; s<=ex.sets; s++){
+      const lastSet = last[ex.id] && last[ex.id][s];
+      html += `<div class="round">`;
+      if(ex.components.length > 1 || ex.sets > 1){
+        html += `<div class="round-label">Подход ${s}</div>`;
+      }
+      ex.components.forEach(comp=>{
+        const placeholder = lastSet ? lastSet[comp.key] : null;
+        html += `<div class="comp">
+          <div class="comp-label">${comp.label || 'Результат'}</div>
+          <div class="comp-target">${comp.target}</div>
+          ${fieldHTML(ex.id, s, comp, placeholder)}
+        </div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+  });
+
+  mainEl.innerHTML = html;
+  document.getElementById('dateInput').onchange = (e)=>{ currentDate = e.target.value; };
+  saveBar.style.display = 'flex';
+}
+
+function collectDayData(dayId){
+  const day = PROGRAM.find(d=>d.id===dayId);
+  const bw = currentBW();
+  const data = {};
+  let hasAny = false;
+  day.exercises.forEach(ex=>{
+    data[ex.id] = {};
+    for(let s=1; s<=ex.sets; s++){
+      const setData = {};
+      let setHasAny = false;
+      ex.components.forEach(comp=>{
+        const entry = {};
+        if(comp.time){
+          const el = document.querySelector(`[data-field="${ex.id}__${s}__${comp.key}"][data-kind="time"]`);
+          if(el && el.value !== ''){ entry.time = Number(el.value); setHasAny = true; }
+        }else if(comp.bodyweightOption){
+          const name = `${ex.id}__${s}__${comp.key}`;
+          const cb = document.querySelector(`[data-bwtoggle="${name}"]`);
+          const isBW = cb ? cb.checked : true;
+          const rEl = document.querySelector(`[data-field="${name}"][data-kind="reps"]`);
+          const repsVal = (rEl && rEl.value !== '') ? Number(rEl.value) : null;
+          if(isBW){
+            const eEl = document.querySelector(`[data-field="${name}"][data-kind="extra"]`);
+            const extraVal = (eEl && eEl.value !== '') ? Number(eEl.value) : 0;
+            if(repsVal != null || extraVal){
+              entry.bw = true;
+              entry.extra = extraVal;
+              entry.weight = bw + extraVal;
+              if(repsVal != null) entry.reps = repsVal;
+              setHasAny = true;
+            }
+          }else{
+            const wEl = document.querySelector(`[data-field="${name}"][data-kind="weight"]`);
+            const weightVal = (wEl && wEl.value !== '') ? Number(wEl.value) : null;
+            if(weightVal != null){ entry.weight = weightVal; entry.bw = false; setHasAny = true; }
+            if(repsVal != null){ entry.reps = repsVal; setHasAny = true; }
+          }
+        }else{
+          if(comp.weight){
+            const wEl = document.querySelector(`[data-field="${ex.id}__${s}__${comp.key}"][data-kind="weight"]`);
+            if(wEl && wEl.value !== ''){ entry.weight = Number(wEl.value); setHasAny = true; }
+          }
+          const rEl = document.querySelector(`[data-field="${ex.id}__${s}__${comp.key}"][data-kind="reps"]`);
+          if(rEl && rEl.value !== ''){ entry.reps = Number(rEl.value); setHasAny = true; }
+        }
+        if(Object.keys(entry).length) setData[comp.key] = entry;
+      });
+      if(setHasAny){ data[ex.id][s] = setData; hasAny = true; }
+    }
+  });
+  return {data, hasAny};
+}
+
+function tonnage(dayId, data){
+  let total = 0;
+  const day = PROGRAM.find(d=>d.id===dayId);
+  day.exercises.forEach(ex=>{
+    const exData = data[ex.id] || {};
+    Object.values(exData).forEach(setData=>{
+      Object.values(setData).forEach(entry=>{
+        if(entry.weight != null && entry.reps != null){
+          total += entry.weight * entry.reps;
+        }
+      });
+    });
+  });
+  return Math.round(total);
+}
+
+function showToast(msg, ms=2600){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>toastEl.classList.remove('show'), ms);
+}
+
+function saveCurrentDay(){
+  const dayId = activeTab;
+  const {data, hasAny} = collectDayData(dayId);
+  if(!hasAny){
+    showToast('Пусто — заполни хоть один подход перед сохранением');
+    return;
+  }
+  const dayLabel = PROGRAM.find(d=>d.id===dayId).label;
+  const tons = tonnage(dayId, data);
+
+  const prevTonSessions = store.sessions.filter(s=>s.dayId===dayId).sort((a,b)=> a.date < b.date ? 1 : -1);
+  const prevTon = prevTonSessions.length ? prevTonSessions[0].tonnage : null;
+
+  const existingIdx = store.sessions.findIndex(s=>s.dayId===dayId && s.date===currentDate);
+  const session = {date: currentDate, dayId, dayLabel, data, tonnage: tons};
+  if(existingIdx >= 0){
+    store.sessions[existingIdx] = session;
+  }else{
+    store.sessions.push(session);
+  }
+  store.lastByDay[dayId] = data;
+  saveStore(store);
+
+  let note = 'Тренировка сохранена.';
+  if(prevTon != null && tons > 0){
+    if(tons > prevTon) note += ` Тоннаж вырос: ${prevTon} → ${tons} кг. Связки не в претензии — прогресс идёт.`;
+    else if(tons < prevTon) note += ` Тоннаж чуть ниже прошлого раза (${prevTon} → ${tons} кг) — бывает, не гонка.`;
+    else note += ` Тоннаж на уровне прошлого раза (${tons} кг).`;
+  }else{
+    note += ` Тоннаж за сегодня: ${tons} кг.`;
+  }
+  showToast(note, 4200);
+  renderDay(dayId);
+}
+
+function progressOptions(){
+  const opts = [];
+  PROGRAM.forEach(day=>{
+    opts.push({value:`tonnage__${day.id}`, label:`Тоннаж — ${day.label}`});
+  });
+  PROGRAM.forEach(day=>{
+    day.exercises.forEach(ex=>{
+      const primary = ex.components.find(c=>c.weight && !c.time);
+      if(!primary) return;
+      opts.push({value:`exercise__${ex.id}__${primary.key}`, label:`${ex.name}`});
+    });
+  });
+  return opts;
+}
+
+function buildProgressSeries(value){
+  const [kind, a, b] = value.split('__');
+  const sorted = [...store.sessions].sort((s1,s2)=> s1.date < s2.date ? -1 : 1);
+  const points = [];
+  if(kind === 'tonnage'){
+    sorted.filter(s=>s.dayId===a).forEach(s=>{
+      points.push({date:s.date, value:s.tonnage});
+    });
+  }else{
+    sorted.forEach(s=>{
+      const exData = s.data[a];
+      if(!exData) return;
+      let sum=0, count=0;
+      Object.values(exData).forEach(setData=>{
+        const entry = setData[b];
+        if(entry && entry.weight != null){ sum += entry.weight; count++; }
+      });
+      if(count>0) points.push({date:s.date, value: Math.round((sum/count)*10)/10});
+    });
+  }
+  return points;
+}
+
+let progressChart = null;
+function renderProgressChart(value){
+  const wrap = document.getElementById('chartWrap');
+  const points = buildProgressSeries(value);
+  if(progressChart){ progressChart.destroy(); progressChart = null; }
+  if(points.length < 2){
+    wrap.innerHTML = `<div class="no-data">Пока маловато данных для графика — нужно минимум 2 сохранённые тренировки по этому пункту.</div>`;
+    return;
+  }
+  wrap.innerHTML = `<canvas id="progressCanvas"></canvas>`;
+  const ctx = document.getElementById('progressCanvas').getContext('2d');
+  const isTonnage = value.startsWith('tonnage__');
+  progressChart = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: points.map(p=>formatDate(p.date)),
+      datasets:[{
+        label: isTonnage ? 'Тоннаж, кг' : 'Вес, кг',
+        data: points.map(p=>p.value),
+        borderColor:'#C1440E',
+        backgroundColor:'rgba(193,68,14,0.15)',
+        pointBackgroundColor:'#C1440E',
+        pointRadius:4,
+        tension:0.25,
+        fill:true
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ ticks:{color:'#9B9B95', font:{size:11}}, grid:{color:'#34363B'} },
+        y:{ ticks:{color:'#9B9B95', font:{size:11}}, grid:{color:'#34363B'} }
+      }
+    }
+  });
+}
+
+function renderHistory(){
+  saveBar.style.display = 'none';
+  const sessions = [...store.sessions].sort((a,b)=> a.date < b.date ? 1 : -1);
+
+  const opts = progressOptions();
+  const optionsHtml = opts.map(o=>`<option value="${o.value}">${o.label}</option>`).join('');
+  let html = `<div class="progress-block">
+    <div class="pb-title">Прогресс</div>
+    <select id="progressSelect">${optionsHtml}</select>
+    <div class="chart-wrap" id="chartWrap"></div>
+  </div>`;
+
+  if(!sessions.length){
+    html += `<div class="empty">Пока пусто. Заполни тренировку и сохрани — она появится здесь.</div>`;
+    mainEl.innerHTML = html;
+    document.getElementById('progressSelect').onchange = (e)=> renderProgressChart(e.target.value);
+    renderProgressChart(opts[0].value);
+    return;
+  }
+  sessions.forEach((s, idx)=>{
+    const day = PROGRAM.find(d=>d.id===s.dayId);
+    let detail = '';
+    if(day){
+      day.exercises.forEach(ex=>{
+        const exData = s.data[ex.id];
+        if(!exData || !Object.keys(exData).length) return;
+        const parts = [];
+        Object.keys(exData).sort((a,b)=>a-b).forEach(setNum=>{
+          const setData = exData[setNum];
+          const compParts = [];
+          ex.components.forEach(comp=>{
+            const entry = setData[comp.key];
+            if(!entry) return;
+            if(entry.time != null) compParts.push(`${entry.time}с`);
+            else if(entry.weight != null && entry.reps != null){
+              const bwTag = entry.bw ? ' (св.вес)' : '';
+              compParts.push(`${entry.weight}×${entry.reps}${bwTag}`);
+            }
+            else if(entry.reps != null) compParts.push(`${entry.reps}`);
+          });
+          if(compParts.length) parts.push(compParts.join('/'));
+        });
+        if(parts.length) detail += `<div><b>${ex.name}:</b> ${parts.join(', ')}</div>`;
+      });
+    }
+    html += `<div class="history-item">
+      <div class="hi-top" onclick="toggleHistory(${idx})">
+        <div>
+          <div class="hi-date">${formatDate(s.date)}</div>
+          <div class="hi-day">${s.dayLabel}</div>
+        </div>
+        <div class="hi-tonnage">${s.tonnage} кг</div>
+      </div>
+      <div class="hi-detail" id="hi-detail-${idx}">${detail || 'Нет данных'}</div>
+      <div class="hi-editrow">
+        <button type="button" class="hi-edit-btn" id="editBtn-${idx}">изменить дату</button>
+        <div class="hi-edit-form" id="editForm-${idx}">
+          <input type="date" id="editDateInput-${idx}" value="${s.date}">
+          <button type="button" id="editSaveBtn-${idx}">Сохранить</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  mainEl.innerHTML = html;
+  document.getElementById('progressSelect').onchange = (e)=> renderProgressChart(e.target.value);
+  renderProgressChart(opts[0].value);
+
+  sessions.forEach((s, idx)=>{
+    const btn = document.getElementById('editBtn-'+idx);
+    const form = document.getElementById('editForm-'+idx);
+    const input = document.getElementById('editDateInput-'+idx);
+    const saveBtn = document.getElementById('editSaveBtn-'+idx);
+    if(!btn) return;
+    btn.onclick = (e)=>{
+      e.stopPropagation();
+      form.classList.toggle('open');
+    };
+    saveBtn.onclick = (e)=>{
+      e.stopPropagation();
+      const newDate = input.value;
+      if(!newDate) return;
+      s.date = newDate;
+      saveStore(store);
+      showToast('Дата обновлена');
+      renderHistory();
+    };
+  });
+}
+
+function toggleHistory(idx){
+  const el = document.getElementById(`hi-detail-${idx}`);
+  el.classList.toggle('open');
+}
+window.toggleHistory = toggleHistory;
+
+function formatDate(str){
+  const [y,m,d] = str.split('-');
+  const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  return `${Number(d)} ${months[Number(m)-1]} ${y}`;
+}
+
+function render(){
+  renderTabs();
+  if(activeTab === 'history'){
+    renderHistory();
+  }else{
+    currentDate = todayStr();
+    renderDay(activeTab);
+  }
+}
+
+document.getElementById('saveBtn').onclick = saveCurrentDay;
+
+async function init(){
+  store = loadLocalStore();
+  bwInput.value = currentBW();
+  render();
+
+  if(cloudAvailable()){
+    const cloud = await cloudLoadStore();
+    if(cloud){
+      store = cloud;
+      const metaRaw = await cloudGetItem(CLOUD_META_KEY);
+      if(metaRaw){
+        try{ lastCloudChunkCount = JSON.parse(metaRaw).count || 0; }catch(e){}
+      }
+      saveLocalStore(store);
+      bwInput.value = currentBW();
+      render();
+    }else{
+      cloudSaveStore(store).catch(()=>{});
+    }
+    syncStatusEl.className = 'sync-status on';
+    syncStatusEl.innerHTML = '<span class="dot"></span>Telegram Mini App — синхронизация включена';
+  }else{
+    syncStatusEl.className = 'sync-status off';
+    syncStatusEl.innerHTML = '<span class="dot"></span>локальный режим (открой через бота в Telegram для синхронизации)';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
