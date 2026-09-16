@@ -823,6 +823,9 @@ function cloneDefaultProgram(){
 function ensureStoreDefaults(s){
   if(!s.settings) s.settings = {bodyweight: DEFAULT_BW};
   if(s.settings.bodyweight == null) s.settings.bodyweight = DEFAULT_BW;
+  if(!s.deletedDays) s.deletedDays = {};
+  if(!s.deletedExercises) s.deletedExercises = {};
+  if(!s.deletedSessions) s.deletedSessions = {};
   if(!s.sessions) s.sessions = [];
   if(!s.lastByDay) s.lastByDay = {};
   if(!s.records) s.records = {};
@@ -859,22 +862,45 @@ function mergeStores(a, b){
   const secondary = primary === b ? a : b;
   const merged = JSON.parse(JSON.stringify(primary));
 
+  // Merge the tombstones themselves first (union, keep the latest deletedAt per key) —
+  // everything below checks against this combined set, so a deletion recorded on EITHER
+  // side always wins over a stale copy still sitting on the other side.
+  ['deletedDays','deletedExercises','deletedSessions'].forEach(field=>{
+    if(!merged[field]) merged[field] = {};
+    Object.keys(secondary[field] || {}).forEach(k=>{
+      if(!merged[field][k] || secondary[field][k] > merged[field][k]) merged[field][k] = secondary[field][k];
+    });
+  });
+
   Object.keys(secondary.program || {}).forEach(dayId=>{
+    if(merged.deletedDays[dayId]) return; // deleted on one side — never resurrect it
     if(!merged.program[dayId]){
       merged.program[dayId] = secondary.program[dayId];
       if(!merged.dayOrder.includes(dayId)) merged.dayOrder.push(dayId);
     }else{
       const existingIds = new Set(merged.program[dayId].exercises.map(e=>e.id));
       (secondary.program[dayId].exercises || []).forEach(ex=>{
-        if(!existingIds.has(ex.id)) merged.program[dayId].exercises.push(ex);
+        if(existingIds.has(ex.id)) return;
+        if(merged.deletedExercises[dayId+'::'+ex.id]) return;
+        merged.program[dayId].exercises.push(ex);
       });
     }
   });
+  // Cleanup pass: if a tombstone applies to something primary itself still listed, drop it too.
+  merged.dayOrder = merged.dayOrder.filter(id => !merged.deletedDays[id]);
+  Object.keys(merged.program).forEach(dayId=>{
+    if(merged.deletedDays[dayId]){ delete merged.program[dayId]; return; }
+    merged.program[dayId].exercises = merged.program[dayId].exercises.filter(
+      ex => !merged.deletedExercises[dayId+'::'+ex.id]
+    );
+  });
 
   const sessionKey = s => s.dayId + '__' + s.date;
+  merged.sessions = merged.sessions.filter(s => !merged.deletedSessions[sessionKey(s)]);
   const seenSessions = new Set(merged.sessions.map(sessionKey));
   (secondary.sessions || []).forEach(s=>{
     const k = sessionKey(s);
+    if(merged.deletedSessions[k]) return;
     if(!seenSessions.has(k)){ merged.sessions.push(s); seenSessions.add(k); }
   });
 
@@ -1005,12 +1031,42 @@ async function cloudSaveStore(s){
   }
 }
 
+// Two overlapping cloudSaveStore() calls would both read activeCloudPrefix before either
+// had finished updating it, and both end up writing (and racing on) the same "new" prefix.
+// Everything funnels through this one chained promise so writes always run strictly one
+// after another, never concurrently.
+let cloudWriteChain = Promise.resolve();
+let cloudDebounceTimer = null;
+
+function enqueueCloudWrite(s){
+  cloudWriteChain = cloudWriteChain.then(
+    () => cloudSaveStore(s),
+    () => cloudSaveStore(s) // a prior failure shouldn't block all future attempts
+  ).catch(()=>{
+    showToast('Не удалось сохранить в облако — проверь связь, попробуем при следующем изменении', 3600);
+  });
+  return cloudWriteChain;
+}
+
+// For frequent UI-driven saves (+подход, ×, переименование...) — waits a beat so a burst
+// of quick actions becomes one cloud write instead of one per click.
+function queueCloudSave(s){
+  if(!cloudAvailable()) return;
+  clearTimeout(cloudDebounceTimer);
+  cloudDebounceTimer = setTimeout(()=> enqueueCloudWrite(s), 600);
+}
+
+// For one-off startup/catch-up pushes where waiting serves no purpose.
+function cloudSaveNow(s){
+  if(!cloudAvailable()) return Promise.resolve();
+  clearTimeout(cloudDebounceTimer);
+  return enqueueCloudWrite(s);
+}
+
 function saveStore(s){
   s.updatedAt = Date.now();
   saveLocalStore(s);
-  if(cloudAvailable()){
-    cloudSaveStore(s).catch(()=>{});
-  }
+  queueCloudSave(s);
 }
 
 let store = defaultStore();
@@ -1424,6 +1480,7 @@ function deleteDay(dayId){
   delete store.program[dayId];
   delete store.lastByDay[dayId];
   delete drafts[dayId];
+  store.deletedDays[dayId] = Date.now();
   saveStore(store);
   activeTab = store.dayOrder[0];
   dayEditMode = false;
@@ -1466,6 +1523,7 @@ window.saveRenameInline = saveRenameInline;
 function deleteExercise(dayId, exId){
   const day = getDay(dayId);
   day.exercises = day.exercises.filter(e=>e.id!==exId);
+  store.deletedExercises[dayId+'::'+exId] = Date.now();
   saveStore(store);
   showToast('Упражнение удалено из программы');
   renderDay(dayId);
@@ -2085,10 +2143,13 @@ function renderHistory(){
         if(deleteBtn.dataset.confirming === '1'){
           const idx = store.sessions.indexOf(s);
           if(idx === -1) return;
+          const key = s.dayId + '__' + s.date;
           store.sessions.splice(idx, 1);
+          store.deletedSessions[key] = Date.now();
           saveStore(store);
           renderHistory();
           showUndoToast('Запись удалена.', ()=>{
+            delete store.deletedSessions[key];
             store.sessions.splice(idx, 0, s);
             saveStore(store);
             renderHistory();
@@ -2199,12 +2260,17 @@ async function shareCurrentDay(){
 document.getElementById('shareDayBtn').onclick = shareCurrentDay;
 document.getElementById('saveBtn').onclick = saveCurrentDay;
 
-async function init(){
-  store = loadLocalStore();
-  bwInput.value = currentBW();
-  render();
+let cloudSyncInProgress = false;
 
-  if(cloudAvailable()){
+async function syncWithCloud(isInitial){
+  if(!cloudAvailable()){
+    syncStatusEl.className = 'sync-status off';
+    syncStatusEl.innerHTML = '<span class="dot"></span>локальный режим (открой через бота в Telegram для синхронизации)';
+    return;
+  }
+  if(cloudSyncInProgress) return;
+  cloudSyncInProgress = true;
+  try{
     const result = await cloudLoadStore();
     if(result.error){
       // Couldn't confirm what's in the cloud — do NOT push local over it, a
@@ -2215,22 +2281,46 @@ async function init(){
       store = mergeStores(store, result.store);
       saveLocalStore(store);
       bwInput.value = currentBW();
-      domDayId = null;
-      render();
-      // Push the merged result back so both sides converge on the same combined data.
-      cloudSaveStore(store).catch(()=>{});
+      if(isInitial){
+        // Nothing has been typed into the page yet — safe to redraw immediately.
+        domDayId = null;
+        render();
+      }
+      // On a later, background resync (app came back to the foreground) we deliberately
+      // do NOT force a re-render here: the merged data is already safe in `store` and
+      // local storage, and redrawing mid-typing risks either clobbering what's on screen
+      // or being masked by it via the draft mechanism. The next natural navigation
+      // (switching tabs) picks up the merged state cleanly on its own.
+      cloudSaveNow(store); // push the merged result back so both sides converge
       syncStatusEl.className = 'sync-status on';
       syncStatusEl.innerHTML = '<span class="dot"></span>Telegram Mini App — синхронизация включена';
     }else{
       // Genuinely empty cloud (confirmed, not just "couldn't check") — safe to seed it.
-      cloudSaveStore(store).catch(()=>{});
+      cloudSaveNow(store);
       syncStatusEl.className = 'sync-status on';
       syncStatusEl.innerHTML = '<span class="dot"></span>Telegram Mini App — синхронизация включена';
     }
-  }else{
-    syncStatusEl.className = 'sync-status off';
-    syncStatusEl.innerHTML = '<span class="dot"></span>локальный режим (открой через бота в Telegram для синхронизации)';
+  }finally{
+    cloudSyncInProgress = false;
   }
+}
+
+async function init(){
+  store = loadLocalStore();
+  bwInput.value = currentBW();
+  render();
+
+  await syncWithCloud(true);
+
+  // The Mini App's WebView often stays alive when you switch away and back (another
+  // device's save wouldn't otherwise show up until a full close+reopen) — re-check the
+  // cloud every time the app becomes visible/focused again, not just once at load.
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState === 'visible') syncWithCloud(false);
+  });
+  window.addEventListener('focus', ()=>{
+    syncWithCloud(false);
+  });
 }
 
 init();
