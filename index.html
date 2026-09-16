@@ -37,6 +37,8 @@ body{
 header{
   padding:22px 18px 16px;
   border-bottom:1px solid var(--line);
+  max-width:640px;
+  margin:0 auto;
 }
 header h1{
   font-family:'Oswald',sans-serif;
@@ -124,13 +126,19 @@ nav button.active{
   color:var(--text);
   border-bottom-color:var(--rust);
 }
+nav button.add-day-btn{
+  flex:0 0 44px;
+  min-width:44px;
+  color:var(--rust);
+  font-size:16px;
+}
 
 main{padding:16px;max-width:640px;margin:0 auto;}
 
-.day-date{
+.day-toolbar{
   display:flex;
-  align-items:center;
   justify-content:space-between;
+  align-items:flex-end;
   margin-bottom:14px;
   gap:10px;
 }
@@ -148,6 +156,41 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   padding:8px 10px;
   font-family:'Inter',sans-serif;
   font-size:14px;
+}
+.edit-toggle-btn{
+  background:var(--card-2);
+  border:1px solid var(--line);
+  color:var(--text);
+  border-radius:8px;
+  padding:9px 12px;
+  font-size:12px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.edit-toggle-btn.active{
+  border-color:var(--rust);
+  color:var(--rust);
+}
+.day-delete-row{
+  margin:-6px 0 14px;
+}
+.day-delete-btn{
+  width:100%;
+  background:none;
+  border:1px dashed var(--rust-dim);
+  color:var(--rust);
+  border-radius:8px;
+  padding:9px;
+  font-size:12px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+}
+.day-delete-btn.confirming{
+  background:var(--rust);
+  color:#fff;
+  border-style:solid;
 }
 
 .card{
@@ -170,6 +213,20 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   font-size:15.5px;
   line-height:1.25;
 }
+.ex-name-input{
+  font-family:'Oswald',sans-serif;
+  font-weight:600;
+  font-size:15.5px;
+  line-height:1.25;
+  background:var(--card-2);
+  border:1px solid var(--rust-dim);
+  color:var(--text);
+  border-radius:6px;
+  padding:4px 8px;
+  flex:1 1 auto;
+  min-width:0;
+}
+.ex-name-input:focus{outline:none;border-color:var(--rust);}
 .ex-tag{
   font-size:10.5px;
   font-weight:700;
@@ -181,9 +238,25 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   white-space:nowrap;
   flex-shrink:0;
 }
+.ex-delete-btn{
+  background:none;
+  border:none;
+  color:var(--rust);
+  font-size:11.5px;
+  padding:0;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+  flex-shrink:0;
+  margin-left:auto;
+}
 .ex-sub{
   color:var(--muted);
   font-size:12px;
+  margin-bottom:2px;
+}
+.pr-badge{
+  color:var(--warn);
+  font-size:11.5px;
   margin-bottom:10px;
 }
 
@@ -192,12 +265,47 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   padding:9px 0;
 }
 .round:first-of-type{border-top:none;padding-top:4px;}
+.round-label-line{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:6px;
+}
 .round-label{
   font-size:11.5px;
   color:var(--muted);
-  margin-bottom:6px;
   font-weight:500;
 }
+.round-del-btn{
+  background:none;
+  border:1px solid var(--rust-dim);
+  color:var(--rust);
+  width:18px;height:18px;
+  border-radius:50%;
+  font-size:12px;
+  line-height:1;
+  cursor:pointer;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.round-done-toggle{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  color:var(--ok);
+  cursor:pointer;
+  user-select:none;
+  margin-left:auto;
+}
+.round-done-toggle input{
+  width:15px;height:15px;
+  accent-color:var(--ok);
+  margin:0;
+}
+.round.done .field, .round.done .bw-group{opacity:.5;}
 .comp{
   display:flex;
   align-items:center;
@@ -209,7 +317,8 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 .comp-label{
   font-size:12.5px;
   color:var(--text);
-  flex:1 1 auto;
+  flex:0 1 auto;
+  max-width:150px;
   min-width:0;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -275,6 +384,118 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   margin:0;
 }
 
+.ex-editbar{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px dashed var(--line);
+}
+.mini-btn{
+  background:var(--card-2);
+  border:1px solid var(--line);
+  color:var(--text);
+  border-radius:7px;
+  padding:7px 10px;
+  font-size:11.5px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+}
+.mini-btn.danger{
+  color:#E88A6A;
+  border-color:var(--rust-dim);
+}
+.mini-btn.confirming{
+  background:var(--rust);
+  color:#fff;
+  border-color:var(--rust);
+}
+.add-ex-btn{
+  width:100%;
+  background:var(--card);
+  border:1px dashed var(--line);
+  color:var(--muted);
+  border-radius:10px;
+  padding:13px;
+  font-size:13px;
+  cursor:pointer;
+  margin-bottom:12px;
+  font-family:'Inter',sans-serif;
+}
+.add-ex-form{
+  display:none;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:14px;
+  margin-bottom:12px;
+}
+.add-ex-form.open{display:block;}
+.add-ex-form .field-label{
+  font-size:11.5px;
+  color:var(--muted);
+  margin-bottom:4px;
+  display:block;
+}
+.add-ex-form input[type="text"],
+.add-ex-form input[type="number"]{
+  width:100%;
+  background:var(--card-2);
+  border:1px solid var(--line);
+  color:var(--text);
+  border-radius:7px;
+  padding:9px 10px;
+  font-size:13.5px;
+  margin-bottom:10px;
+  font-family:'Inter',sans-serif;
+}
+.add-ex-form label.chk{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12.5px;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+.comp-row{
+  border-top:1px solid var(--line);
+  padding-top:10px;
+  margin-top:2px;
+}
+.comp-row-title{
+  font-size:11px;
+  color:var(--muted);
+  margin-bottom:6px;
+  text-transform:uppercase;
+  letter-spacing:0.3px;
+}
+.form-actions{
+  display:flex;
+  gap:8px;
+  margin-top:6px;
+}
+.form-actions button{
+  flex:1;
+  border-radius:7px;
+  padding:10px;
+  font-size:13px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+  border:none;
+}
+.form-actions .primary{background:var(--rust);color:#fff;}
+.form-actions .secondary{background:var(--card-2);color:var(--text);border:1px solid var(--line);}
+.add-comp-btn{
+  background:none;
+  border:none;
+  color:var(--steel);
+  font-size:12px;
+  cursor:pointer;
+  padding:6px 0;
+  font-family:'Inter',sans-serif;
+}
+
 .save-bar{
   position:fixed;
   bottom:0;left:0;right:0;
@@ -300,6 +521,13 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   cursor:pointer;
 }
 .save-bar button:active{background:#9c3608;}
+.save-bar button.share-day-btn{
+  background:var(--card-2);
+  border:1px solid var(--line);
+  color:var(--text);
+  flex:0.85;
+}
+.save-bar button.share-day-btn:active{background:#33353b;}
 
 .toast{
   position:fixed;
@@ -360,7 +588,11 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 .history-item .hi-detail div{margin-bottom:4px;}
 .history-item .hi-detail b{color:var(--text);font-weight:500;}
 .hi-editrow{margin-top:8px;}
-.hi-edit-btn{
+.hi-actions{
+  display:flex;
+  gap:16px;
+}
+.hi-edit-btn, .hi-share-btn{
   background:none;
   border:none;
   color:var(--steel);
@@ -369,6 +601,7 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   cursor:pointer;
   font-family:'Inter',sans-serif;
 }
+.hi-share-btn{color:var(--rust);}
 .hi-edit-form{
   display:none;
   align-items:center;
@@ -437,6 +670,18 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   text-align:center;
   padding:30px 0;
 }
+.share-chart-btn{
+  width:100%;
+  margin-top:12px;
+  background:var(--card-2);
+  border:1px solid var(--line);
+  color:var(--text);
+  border-radius:8px;
+  padding:10px;
+  font-size:12.5px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+}
 </style>
 </head>
 <body>
@@ -457,13 +702,14 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 <main id="main"></main>
 
 <div class="save-bar" id="saveBar">
+  <button id="shareDayBtn" class="share-day-btn">Поделиться днём</button>
   <button id="saveBtn">Сохранить тренировку</button>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const PROGRAM = [
+const DEFAULT_PROGRAM = [
   {
     id:'day1', label:'Грудь + Спина',
     exercises:[
@@ -482,8 +728,8 @@ const PROGRAM = [
       {id:'d1e7', name:'Пресс — суперсет: подъём коленей в висе + боковая планка', tag:'СУПЕРСЕТ', sets:3,
         components:[
           {key:'a', label:'Подъём коленей', target:'12-15', weight:true, bodyweightOption:true},
-          {key:'b', label:'Планка вправо', target:'30 сек', weight:false, time:true},
-          {key:'c', label:'Планка влево', target:'30 сек', weight:false, time:true}
+          {key:'b', label:'Планка вправо', target:'30 сек', weight:false},
+          {key:'c', label:'Планка влево', target:'30 сек', weight:false}
         ]}
     ]
   },
@@ -530,11 +776,12 @@ const PROGRAM = [
         components:[
           {key:'a', label:'Скручивания лёжа', target:'15-20', weight:true, bodyweightOption:true},
           {key:'b', label:'Свеча', target:'12-15', weight:true, bodyweightOption:true},
-          {key:'c', label:'Планка', target:'40-60 сек', weight:false, time:true}
+          {key:'c', label:'Планка', target:'40-60 сек', weight:false}
         ]}
     ]
   }
 ];
+const DAY_IDS = ['day1','day2','day3'];
 
 const STORE_KEY = 'ironpoint_tracker_v1';
 const CLOUD_META_KEY = 'ip_meta';
@@ -551,25 +798,44 @@ function cloudAvailable(){
   return !!(tg && tg.CloudStorage);
 }
 
+function cloneDefaultProgram(){
+  const obj = {};
+  DEFAULT_PROGRAM.forEach(day=>{ obj[day.id] = JSON.parse(JSON.stringify(day)); });
+  return obj;
+}
+
+function ensureStoreDefaults(s){
+  if(!s.settings) s.settings = {bodyweight: DEFAULT_BW};
+  if(s.settings.bodyweight == null) s.settings.bodyweight = DEFAULT_BW;
+  if(!s.sessions) s.sessions = [];
+  if(!s.lastByDay) s.lastByDay = {};
+  if(!s.records) s.records = {};
+  if(!s.bodyweightLog) s.bodyweightLog = [];
+  if(!s.program) s.program = cloneDefaultProgram();
+  if(!s.dayOrder) s.dayOrder = DEFAULT_PROGRAM.map(d=>d.id);
+  DEFAULT_PROGRAM.forEach(d=>{
+    if(!s.program[d.id]) s.program[d.id] = JSON.parse(JSON.stringify(d));
+    if(!s.dayOrder.includes(d.id)) s.dayOrder.push(d.id);
+  });
+  return s;
+}
+
 function defaultStore(){
-  return {sessions:[], lastByDay:{}, settings:{bodyweight: DEFAULT_BW}};
+  return ensureStoreDefaults({});
 }
 
 function loadLocalStore(){
   try{
     const raw = localStorage.getItem(STORE_KEY);
     if(raw){
-      const parsed = JSON.parse(raw);
-      if(!parsed.settings) parsed.settings = {bodyweight: DEFAULT_BW};
-      if(parsed.settings.bodyweight == null) parsed.settings.bodyweight = DEFAULT_BW;
-      return parsed;
+      return ensureStoreDefaults(JSON.parse(raw));
     }
   }catch(e){}
   return defaultStore();
 }
 
-function saveLocalStore(store){
-  localStorage.setItem(STORE_KEY, JSON.stringify(store));
+function saveLocalStore(s){
+  localStorage.setItem(STORE_KEY, JSON.stringify(s));
 }
 
 function cloudGetItem(key){
@@ -600,17 +866,16 @@ async function cloudLoadStore(){
       json += part;
     }
     const parsed = JSON.parse(json);
-    if(!parsed.settings) parsed.settings = {bodyweight: DEFAULT_BW};
-    return parsed;
+    return ensureStoreDefaults(parsed);
   }catch(e){
     return null;
   }
 }
 
 let lastCloudChunkCount = 0;
-async function cloudSaveStore(store){
+async function cloudSaveStore(s){
   if(!cloudAvailable()) return;
-  const json = JSON.stringify(store);
+  const json = JSON.stringify(s);
   const chunks = [];
   for(let i=0; i<json.length; i+=CLOUD_CHUNK_SIZE){
     chunks.push(json.slice(i, i+CLOUD_CHUNK_SIZE));
@@ -625,16 +890,17 @@ async function cloudSaveStore(store){
   await cloudSetItem(CLOUD_META_KEY, JSON.stringify({count: chunks.length}));
 }
 
-function saveStore(store){
-  saveLocalStore(store);
+function saveStore(s){
+  saveLocalStore(s);
   if(cloudAvailable()){
-    cloudSaveStore(store).catch(()=>{});
+    cloudSaveStore(s).catch(()=>{});
   }
 }
 
 let store = defaultStore();
 let activeTab = 'day1';
 let currentDate = todayStr();
+let dayEditMode = false;
 
 function todayStr(){
   const d = new Date();
@@ -645,6 +911,9 @@ function todayStr(){
 function currentBW(){
   return Number(store.settings.bodyweight) || DEFAULT_BW;
 }
+
+function getDay(dayId){ return store.program[dayId]; }
+function allDays(){ return store.dayOrder.map(id=>store.program[id]); }
 
 const tabsEl = document.getElementById('tabs');
 const mainEl = document.getElementById('main');
@@ -657,6 +926,10 @@ bwInput.onchange = ()=>{
   const v = Number(bwInput.value);
   if(v > 0){
     store.settings.bodyweight = v;
+    const today = todayStr();
+    const idx = store.bodyweightLog.findIndex(e=>e.date===today);
+    if(idx >= 0) store.bodyweightLog[idx].weight = v;
+    else store.bodyweightLog.push({date: today, weight: v});
     saveStore(store);
     showToast(`Вес обновлён: ${v} кг`);
   }
@@ -664,14 +937,46 @@ bwInput.onchange = ()=>{
 
 function renderTabs(){
   tabsEl.innerHTML = '';
-  const items = [...PROGRAM.map(d=>({id:d.id,label:d.label})), {id:'history', label:'История'}];
+  const items = [...allDays().map(d=>({id:d.id,label:d.label})), {id:'history', label:'История'}, {id:'__addday__', label:'+'}];
   items.forEach(it=>{
     const btn = document.createElement('button');
     btn.textContent = it.label;
     if(it.id === activeTab) btn.classList.add('active');
-    btn.onclick = () => { activeTab = it.id; render(); };
+    if(it.id === '__addday__') btn.classList.add('add-day-btn');
+    btn.onclick = () => { activeTab = it.id; dayEditMode = false; render(); };
     tabsEl.appendChild(btn);
   });
+}
+
+function renderAddDay(){
+  saveBar.style.display = 'none';
+  mainEl.innerHTML = `
+    <div class="add-ex-form open" style="margin-top:16px;">
+      <span class="field-label">Название тренировочного дня</span>
+      <input type="text" id="newDayName" placeholder="Например, Спина + Бицепс">
+      <div class="form-actions">
+        <button type="button" class="secondary" id="cancelNewDayBtn">Отмена</button>
+        <button type="button" class="primary" id="saveNewDayBtn">Создать день</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('cancelNewDayBtn').onclick = ()=>{ activeTab = allDays()[0].id; render(); };
+  document.getElementById('saveNewDayBtn').onclick = createDay;
+  document.getElementById('newDayName').focus();
+}
+
+function createDay(){
+  const input = document.getElementById('newDayName');
+  const name = input.value.trim();
+  if(!name){ showToast('Впиши название дня'); return; }
+  const id = `day_${Date.now()}_${Math.random().toString(36).slice(2,5)}`;
+  store.program[id] = { id, label: name, exercises: [] };
+  store.dayOrder.push(id);
+  saveStore(store);
+  activeTab = id;
+  dayEditMode = true;
+  showToast('День создан — добавь упражнения');
+  render();
 }
 
 function toggleBW(name){
@@ -692,17 +997,23 @@ window.toggleBW = toggleBW;
 function fieldHTML(exId, setIdx, comp, placeholder){
   const name = `${exId}__${setIdx}__${comp.key}`;
 
+  if(!comp.weight && !comp.time && !comp.bodyweightOption){
+    return '';
+  }
+
   if(comp.time){
+    const val = (placeholder && placeholder.time != null) ? ` value="${placeholder.time}"` : '';
     return `<div class="field solo">
-      <input type="number" inputmode="numeric" data-field="${name}" data-kind="time" placeholder="${placeholder && placeholder.time != null ? placeholder.time : '—'}">
+      <input type="number" inputmode="numeric" data-field="${name}" data-kind="time"${val} placeholder="—">
       <span>сек</span>
     </div>`;
   }
 
   if(comp.bodyweightOption){
     const wasBW = placeholder ? placeholder.bw !== false : true;
-    const extraPh = (placeholder && placeholder.bw !== false && placeholder.extra != null) ? placeholder.extra : '0';
-    const manualPh = (placeholder && placeholder.bw === false && placeholder.weight != null) ? placeholder.weight : '—';
+    const extraVal = (wasBW && placeholder && placeholder.extra != null) ? ` value="${placeholder.extra}"` : '';
+    const manualVal = (!wasBW && placeholder && placeholder.weight != null) ? ` value="${placeholder.weight}"` : '';
+    const repsVal = (placeholder && placeholder.reps != null) ? ` value="${placeholder.reps}"` : '';
     return `
       <div class="bw-group">
         <label class="bw-toggle">
@@ -710,81 +1021,331 @@ function fieldHTML(exId, setIdx, comp, placeholder){
           свой вес
         </label>
         <div class="field first" id="extraWrap-${name}" style="display:${wasBW ? 'flex' : 'none'}">
-          <input type="number" step="0.5" inputmode="decimal" data-field="${name}" data-kind="extra" placeholder="${extraPh}">
+          <input type="number" step="0.5" inputmode="decimal" data-field="${name}" data-kind="extra"${extraVal} placeholder="0">
           <span>+кг</span>
         </div>
         <div class="field first" id="manualWrap-${name}" style="display:${wasBW ? 'none' : 'flex'}">
-          <input type="number" step="0.5" inputmode="decimal" data-field="${name}" data-kind="weight" placeholder="${manualPh}">
+          <input type="number" step="0.5" inputmode="decimal" data-field="${name}" data-kind="weight"${manualVal} placeholder="—">
           <span>кг</span>
         </div>
       </div>
       <div class="field ${comp.time ? 'solo' : 'sep'}">
-        <input type="number" inputmode="numeric" data-field="${name}" data-kind="reps" placeholder="${placeholder && placeholder.reps!=null ? placeholder.reps : '—'}">
+        <input type="number" inputmode="numeric" data-field="${name}" data-kind="reps"${repsVal} placeholder="—">
         <span>повт</span>
       </div>`;
   }
 
   let html = '';
   if(comp.weight){
+    const weightVal = (placeholder && placeholder.weight != null) ? ` value="${placeholder.weight}"` : '';
     html += `<div class="field first">
-      <input type="number" step="0.5" inputmode="decimal" data-field="${name}" data-kind="weight" placeholder="${placeholder && placeholder.weight!=null ? placeholder.weight : '—'}">
+      <input type="number" step="0.5" inputmode="decimal" data-field="${name}" data-kind="weight"${weightVal} placeholder="—">
       <span>кг</span>
     </div>`;
   }
+  const repsVal2 = (placeholder && placeholder.reps != null) ? ` value="${placeholder.reps}"` : '';
   html += `<div class="field ${comp.weight ? 'sep' : 'solo'}">
-    <input type="number" inputmode="numeric" data-field="${name}" data-kind="reps" placeholder="${placeholder && placeholder.reps!=null ? placeholder.reps : '—'}">
+    <input type="number" inputmode="numeric" data-field="${name}" data-kind="reps"${repsVal2} placeholder="—">
     <span>повт</span>
   </div>`;
   return html;
 }
 
-function renderDay(dayId){
-  const day = PROGRAM.find(d=>d.id===dayId);
-  const last = (store.lastByDay[dayId]) || {};
+function addExerciseFormHTML(dayId){
+  return `
+    <button type="button" class="add-ex-btn" id="toggleAddEx-${dayId}">+ Добавить упражнение</button>
+    <div class="add-ex-form" id="addExForm-${dayId}">
+      <span class="field-label">Название упражнения</span>
+      <input type="text" id="newExName-${dayId}" placeholder="Например, Гакк-присед узкой постановкой">
 
-  let html = `
-    <div class="day-date">
-      <div>
-        <label>Дата тренировки</label>
-        <input type="date" id="dateInput" value="${currentDate}">
+      <label class="chk"><input type="checkbox" id="newExSuperset-${dayId}"> Это суперсет / несколько частей</label>
+
+      <div id="newExSimple-${dayId}">
+        <label class="chk"><input type="checkbox" id="newExBW-${dayId}"> Со своим весом</label>
+      </div>
+
+      <div id="newExMulti-${dayId}" style="display:none">
+        <div class="comp-row">
+          <div class="comp-row-title">Часть 1</div>
+          <input type="text" id="newComp0Label-${dayId}" placeholder="Название части">
+          <label class="chk"><input type="checkbox" id="newComp0BW-${dayId}"> своё тело</label>
+        </div>
+        <div class="comp-row">
+          <div class="comp-row-title">Часть 2</div>
+          <input type="text" id="newComp1Label-${dayId}" placeholder="Название части">
+          <label class="chk"><input type="checkbox" id="newComp1BW-${dayId}"> своё тело</label>
+        </div>
+        <button type="button" class="add-comp-btn" id="addComp3Btn-${dayId}">+ добавить 3-ю часть</button>
+        <div class="comp-row" id="comp3Row-${dayId}" style="display:none">
+          <div class="comp-row-title">Часть 3</div>
+          <input type="text" id="newComp2Label-${dayId}" placeholder="Название части">
+          <label class="chk"><input type="checkbox" id="newComp2BW-${dayId}"> своё тело</label>
+        </div>
+      </div>
+
+      <span class="field-label">Количество подходов</span>
+      <input type="number" id="newExSets-${dayId}" value="3" min="1">
+
+      <div class="form-actions">
+        <button type="button" class="secondary" id="cancelNewExBtn-${dayId}">Отмена</button>
+        <button type="button" class="primary" id="saveNewExBtn-${dayId}">Добавить</button>
       </div>
     </div>
   `;
+}
+
+function renderDay(dayId){
+  const day = getDay(dayId);
+  const last = (store.lastByDay[dayId]) || {};
+
+  let html = `
+    <div class="day-toolbar">
+      <div class="day-date">
+        <label>Дата тренировки</label>
+        <input type="date" id="dateInput" value="${currentDate}">
+      </div>
+      <button type="button" class="edit-toggle-btn ${dayEditMode ? 'active' : ''}" id="editModeBtn">${dayEditMode ? 'Готово' : 'Редактировать день'}</button>
+    </div>
+    ${dayEditMode ? `<div class="day-delete-row">
+      <button type="button" class="day-delete-btn" onclick="requestDeleteDay('${dayId}', this)">Удалить весь день «${day.label}»</button>
+    </div>` : ''}
+  `;
 
   day.exercises.forEach(ex=>{
+    const primaryComp = ex.components.find(c=>c.weight && !c.time);
+    const rec = primaryComp ? store.records[`${ex.id}__${primaryComp.key}`] : null;
+    const prHtml = rec ? `<div class="pr-badge">🏆 Рекорд: ${rec.weight}×${rec.reps}</div>` : '';
+
     html += `<div class="card">
       <div class="ex-head">
-        <div class="ex-name">${ex.name}</div>
+        ${dayEditMode
+          ? `<input type="text" class="ex-name-input" value="${escapeAttr(ex.name)}" onblur="saveRenameInline('${dayId}','${ex.id}', this.value)" onkeydown="if(event.key==='Enter') this.blur()">`
+          : `<div class="ex-name">${ex.name}</div>`}
         ${ex.tag ? `<div class="ex-tag">${ex.tag}</div>` : ''}
+        ${dayEditMode ? `<button type="button" class="ex-delete-btn" onclick="requestDeleteExercise('${dayId}','${ex.id}', this)">Удалить</button>` : ''}
       </div>
-      <div class="ex-sub">${ex.sets} подход${ex.sets===1?'':(ex.sets<5?'а':'ов')} · целевой диапазон см. ниже</div>`;
+      <div class="ex-sub">${ex.sets} подход${ex.sets===1?'':(ex.sets<5?'а':'ов')} · целевой диапазон см. ниже</div>
+      ${prHtml}`;
 
     for(let s=1; s<=ex.sets; s++){
       const lastSet = last[ex.id] && last[ex.id][s];
-      html += `<div class="round">`;
-      if(ex.components.length > 1 || ex.sets > 1){
-        html += `<div class="round-label">Подход ${s}</div>`;
-      }
-      ex.components.forEach(comp=>{
+      const showLabel = ex.components.length > 1 || ex.sets > 1;
+      const doneChecked = lastSet && lastSet.__done ? 'checked' : '';
+      const canDeleteSet = dayEditMode && ex.sets > 1;
+      const doneToggleHTML = `<label class="round-done-toggle"><input type="checkbox" data-doneref="${ex.id}__${s}" ${doneChecked}> выполнено</label>`;
+      html += `<div class="round">
+        ${showLabel ? `<div class="round-label-line"><span class="round-label">Подход ${s}</span>${canDeleteSet ? `<button type="button" class="round-del-btn" onclick="deleteSet('${dayId}','${ex.id}',${s})">×</button>` : ''}</div>` : ''}`;
+      ex.components.forEach((comp, ci)=>{
         const placeholder = lastSet ? lastSet[comp.key] : null;
+        const isLast = ci === ex.components.length - 1;
         html += `<div class="comp">
           <div class="comp-label">${comp.label || 'Результат'}</div>
           <div class="comp-target">${comp.target}</div>
           ${fieldHTML(ex.id, s, comp, placeholder)}
+          ${isLast ? doneToggleHTML : ''}
         </div>`;
       });
       html += `</div>`;
     }
+
+    if(dayEditMode){
+      html += `<div class="ex-editbar">
+        <button type="button" class="mini-btn" onclick="adjustSets('${dayId}','${ex.id}',1)">+ подход</button>
+      </div>`;
+    }
     html += `</div>`;
   });
 
+  if(dayEditMode){
+    html += addExerciseFormHTML(dayId);
+  }
+
   mainEl.innerHTML = html;
   document.getElementById('dateInput').onchange = (e)=>{ currentDate = e.target.value; };
+  document.getElementById('editModeBtn').onclick = ()=>{ dayEditMode = !dayEditMode; renderDay(dayId); };
   saveBar.style.display = 'flex';
+
+  mainEl.querySelectorAll('[data-doneref]').forEach(cb=>{
+    const round = cb.closest('.round');
+    if(cb.checked && round) round.classList.add('done');
+    cb.onchange = ()=>{ if(round) round.classList.toggle('done', cb.checked); };
+  });
+
+  if(dayEditMode){
+    const ssCb = document.getElementById(`newExSuperset-${dayId}`);
+    if(ssCb) ssCb.onchange = (e)=>{
+      document.getElementById(`newExSimple-${dayId}`).style.display = e.target.checked ? 'none' : 'block';
+      document.getElementById(`newExMulti-${dayId}`).style.display = e.target.checked ? 'block' : 'none';
+    };
+    const addComp3 = document.getElementById(`addComp3Btn-${dayId}`);
+    if(addComp3) addComp3.onclick = ()=> document.getElementById(`comp3Row-${dayId}`).style.display = 'block';
+    const saveBtn = document.getElementById(`saveNewExBtn-${dayId}`);
+    if(saveBtn) saveBtn.onclick = ()=> addExercise(dayId);
+    const cancelBtn = document.getElementById(`cancelNewExBtn-${dayId}`);
+    if(cancelBtn) cancelBtn.onclick = ()=> document.getElementById(`addExForm-${dayId}`).classList.remove('open');
+    const toggleBtn = document.getElementById(`toggleAddEx-${dayId}`);
+    if(toggleBtn) toggleBtn.onclick = ()=> document.getElementById(`addExForm-${dayId}`).classList.toggle('open');
+  }
+}
+
+function adjustSets(dayId, exId, delta){
+  const day = getDay(dayId);
+  const ex = day.exercises.find(e=>e.id===exId);
+  if(!ex) return;
+  const next = ex.sets + delta;
+  if(next < 1){ showToast('Минимум один подход'); return; }
+  ex.sets = next;
+  saveStore(store);
+  renderDay(dayId);
+}
+window.adjustSets = adjustSets;
+
+function deleteSet(dayId, exId, setIndex){
+  const day = getDay(dayId);
+  const ex = day.exercises.find(e=>e.id===exId);
+  if(!ex || ex.sets <= 1){ showToast('Должен остаться хотя бы один подход'); return; }
+  if(!store.lastByDay[dayId]) store.lastByDay[dayId] = {};
+  const last = store.lastByDay[dayId][exId];
+  if(last){
+    const shifted = {};
+    Object.keys(last).sort((a,b)=>a-b).forEach(k=>{
+      const num = Number(k);
+      if(num < setIndex) shifted[num] = last[k];
+      else if(num > setIndex) shifted[num-1] = last[k];
+    });
+    store.lastByDay[dayId][exId] = shifted;
+  }
+  ex.sets -= 1;
+  saveStore(store);
+  renderDay(dayId);
+}
+window.deleteSet = deleteSet;
+
+function requestDeleteExercise(dayId, exId, btn){
+  if(btn.dataset.confirming === '1'){
+    deleteExercise(dayId, exId);
+    return;
+  }
+  btn.dataset.confirming = '1';
+  btn.textContent = 'Точно? Ещё раз';
+  btn.classList.add('confirming');
+  setTimeout(()=>{
+    if(btn.dataset.confirming === '1'){
+      btn.dataset.confirming = '';
+      btn.textContent = 'Удалить упражнение';
+      btn.classList.remove('confirming');
+    }
+  }, 4000);
+}
+window.requestDeleteExercise = requestDeleteExercise;
+
+function requestDeleteDay(dayId, btn){
+  if(btn.dataset.confirming === '1'){
+    deleteDay(dayId);
+    return;
+  }
+  const day = getDay(dayId);
+  btn.dataset.confirming = '1';
+  btn.textContent = 'Точно удалить весь день? Ещё раз';
+  btn.classList.add('confirming');
+  setTimeout(()=>{
+    if(btn.dataset.confirming === '1'){
+      btn.dataset.confirming = '';
+      btn.textContent = `Удалить весь день «${day.label}»`;
+      btn.classList.remove('confirming');
+    }
+  }, 4000);
+}
+window.requestDeleteDay = requestDeleteDay;
+
+function deleteDay(dayId){
+  if(store.dayOrder.length <= 1){
+    showToast('Должен остаться хотя бы один тренировочный день');
+    return;
+  }
+  const day = getDay(dayId);
+  const label = day ? day.label : '';
+  store.dayOrder = store.dayOrder.filter(id=>id!==dayId);
+  delete store.program[dayId];
+  delete store.lastByDay[dayId];
+  saveStore(store);
+  activeTab = store.dayOrder[0];
+  dayEditMode = false;
+  showToast(`День «${label}» удалён. История тренировок за него осталась.`, 4200);
+  render();
+}
+
+function escapeAttr(str){
+  return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+}
+
+function saveRenameInline(dayId, exId, value){
+  const val = value.trim();
+  const day = getDay(dayId);
+  const ex = day.exercises.find(e=>e.id===exId);
+  if(!ex) return;
+  if(!val){ renderDay(dayId); return; }
+  if(val === ex.name) return;
+  ex.name = val;
+  saveStore(store);
+  renderDay(dayId);
+}
+window.saveRenameInline = saveRenameInline;
+
+function deleteExercise(dayId, exId){
+  const day = getDay(dayId);
+  day.exercises = day.exercises.filter(e=>e.id!==exId);
+  saveStore(store);
+  showToast('Упражнение удалено из программы');
+  renderDay(dayId);
+}
+
+function addExercise(dayId){
+  const day = getDay(dayId);
+  const nameEl = document.getElementById(`newExName-${dayId}`);
+  const name = nameEl.value.trim();
+  if(!name){ showToast('Впиши название упражнения'); return; }
+  const setsEl = document.getElementById(`newExSets-${dayId}`);
+  const sets = Math.max(1, Number(setsEl.value) || 3);
+  const isSuperset = document.getElementById(`newExSuperset-${dayId}`).checked;
+  const newId = `custom_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+  let components = [];
+
+  if(isSuperset){
+    for(let i=0;i<3;i++){
+      const labelEl = document.getElementById(`newComp${i}Label-${dayId}`);
+      if(!labelEl) continue;
+      const label = labelEl.value.trim();
+      if(!label) continue;
+      const bwEl = document.getElementById(`newComp${i}BW-${dayId}`);
+      components.push({
+        key: String.fromCharCode(97+components.length),
+        label, target:'—',
+        weight: true,
+        time: false,
+        bodyweightOption: bwEl.checked
+      });
+    }
+    if(components.length < 2){ showToast('Заполни минимум 2 части суперсета'); return; }
+  }else{
+    const bw = document.getElementById(`newExBW-${dayId}`).checked;
+    components = [{key:'a', label:'', target:'—', weight:true, bodyweightOption:bw}];
+  }
+
+  day.exercises.push({
+    id: newId,
+    name,
+    tag: isSuperset ? 'СВОЙ НАБОР' : undefined,
+    sets,
+    components
+  });
+  saveStore(store);
+  showToast('Упражнение добавлено в программу');
+  renderDay(dayId);
 }
 
 function collectDayData(dayId){
-  const day = PROGRAM.find(d=>d.id===dayId);
+  const day = getDay(dayId);
   const bw = currentBW();
   const data = {};
   let hasAny = false;
@@ -830,20 +1391,62 @@ function collectDayData(dayId){
         }
         if(Object.keys(entry).length) setData[comp.key] = entry;
       });
+      const doneEl = document.querySelector(`[data-doneref="${ex.id}__${s}"]`);
+      if(doneEl && doneEl.checked){ setData.__done = true; setHasAny = true; }
       if(setHasAny){ data[ex.id][s] = setData; hasAny = true; }
     }
   });
   return {data, hasAny};
 }
 
+function buildExerciseMeta(dayId, data){
+  const day = getDay(dayId);
+  const meta = {};
+  day.exercises.forEach(ex=>{
+    meta[ex.id] = {
+      name: ex.name,
+      tag: ex.tag || null,
+      components: ex.components.map(c=>({key:c.key, label:c.label, target:c.target, weight:!!c.weight, time:!!c.time, bodyweightOption:!!c.bodyweightOption}))
+    };
+  });
+  return meta;
+}
+
+function updateRecords(dayId, data){
+  const day = getDay(dayId);
+  const newRecords = [];
+  day.exercises.forEach(ex=>{
+    const exData = data[ex.id];
+    if(!exData) return;
+    ex.components.forEach(comp=>{
+      if(!comp.weight || comp.time) return;
+      let best = null;
+      Object.values(exData).forEach(setData=>{
+        const entry = setData[comp.key];
+        if(entry && entry.weight != null && entry.reps != null){
+          if(!best || entry.weight > best.weight || (entry.weight === best.weight && entry.reps > best.reps)) best = entry;
+        }
+      });
+      if(!best) return;
+      const key = `${ex.id}__${comp.key}`;
+      const rec = store.records[key];
+      if(!rec || best.weight > rec.weight || (best.weight === rec.weight && best.reps > rec.reps)){
+        store.records[key] = {weight: best.weight, reps: best.reps, date: currentDate};
+        newRecords.push({name: ex.name + (comp.label ? ` (${comp.label})` : ''), weight: best.weight, reps: best.reps});
+      }
+    });
+  });
+  return newRecords;
+}
+
 function tonnage(dayId, data){
   let total = 0;
-  const day = PROGRAM.find(d=>d.id===dayId);
+  const day = getDay(dayId);
   day.exercises.forEach(ex=>{
     const exData = data[ex.id] || {};
     Object.values(exData).forEach(setData=>{
       Object.values(setData).forEach(entry=>{
-        if(entry.weight != null && entry.reps != null){
+        if(entry && typeof entry === 'object' && entry.weight != null && entry.reps != null){
           total += entry.weight * entry.reps;
         }
       });
@@ -866,14 +1469,16 @@ function saveCurrentDay(){
     showToast('Пусто — заполни хоть один подход перед сохранением');
     return;
   }
-  const dayLabel = PROGRAM.find(d=>d.id===dayId).label;
+  const dayLabel = getDay(dayId).label;
   const tons = tonnage(dayId, data);
+  const newRecords = updateRecords(dayId, data);
+  const exerciseMeta = buildExerciseMeta(dayId, data);
 
   const prevTonSessions = store.sessions.filter(s=>s.dayId===dayId).sort((a,b)=> a.date < b.date ? 1 : -1);
   const prevTon = prevTonSessions.length ? prevTonSessions[0].tonnage : null;
 
   const existingIdx = store.sessions.findIndex(s=>s.dayId===dayId && s.date===currentDate);
-  const session = {date: currentDate, dayId, dayLabel, data, tonnage: tons};
+  const session = {date: currentDate, dayId, dayLabel, data, tonnage: tons, exerciseMeta};
   if(existingIdx >= 0){
     store.sessions[existingIdx] = session;
   }else{
@@ -884,22 +1489,25 @@ function saveCurrentDay(){
 
   let note = 'Тренировка сохранена.';
   if(prevTon != null && tons > 0){
-    if(tons > prevTon) note += ` Тоннаж вырос: ${prevTon} → ${tons} кг. Связки не в претензии — прогресс идёт.`;
-    else if(tons < prevTon) note += ` Тоннаж чуть ниже прошлого раза (${prevTon} → ${tons} кг) — бывает, не гонка.`;
+    if(tons > prevTon) note += ` Тоннаж вырос: ${prevTon} → ${tons} кг.`;
+    else if(tons < prevTon) note += ` Тоннаж чуть ниже прошлого раза (${prevTon} → ${tons} кг).`;
     else note += ` Тоннаж на уровне прошлого раза (${tons} кг).`;
   }else{
     note += ` Тоннаж за сегодня: ${tons} кг.`;
   }
-  showToast(note, 4200);
+  if(newRecords.length){
+    note += ' 🏆 Рекорд: ' + newRecords.map(r=>`${r.name} — ${r.weight}×${r.reps}`).join(', ');
+  }
+  showToast(note, 5400);
   renderDay(dayId);
 }
 
 function progressOptions(){
-  const opts = [];
-  PROGRAM.forEach(day=>{
+  const opts = [{value:'bodyweight__self', label:'Вес тела'}];
+  allDays().forEach(day=>{
     opts.push({value:`tonnage__${day.id}`, label:`Тоннаж — ${day.label}`});
   });
-  PROGRAM.forEach(day=>{
+  allDays().forEach(day=>{
     day.exercises.forEach(ex=>{
       const primary = ex.components.find(c=>c.weight && !c.time);
       if(!primary) return;
@@ -911,6 +1519,9 @@ function progressOptions(){
 
 function buildProgressSeries(value){
   const [kind, a, b] = value.split('__');
+  if(kind === 'bodyweight'){
+    return [...(store.bodyweightLog||[])].sort((e1,e2)=> e1.date < e2.date ? -1 : 1).map(e=>({date:e.date, value:e.weight}));
+  }
   const sorted = [...store.sessions].sort((s1,s2)=> s1.date < s2.date ? -1 : 1);
   const points = [];
   if(kind === 'tonnage'){
@@ -935,21 +1546,23 @@ function buildProgressSeries(value){
 let progressChart = null;
 function renderProgressChart(value){
   const wrap = document.getElementById('chartWrap');
+  if(!wrap) return;
   const points = buildProgressSeries(value);
   if(progressChart){ progressChart.destroy(); progressChart = null; }
   if(points.length < 2){
-    wrap.innerHTML = `<div class="no-data">Пока маловато данных для графика — нужно минимум 2 сохранённые тренировки по этому пункту.</div>`;
+    wrap.innerHTML = `<div class="no-data">Пока маловато данных для графика — нужно минимум 2 сохранённые точки по этому пункту.</div>`;
     return;
   }
   wrap.innerHTML = `<canvas id="progressCanvas"></canvas>`;
   const ctx = document.getElementById('progressCanvas').getContext('2d');
   const isTonnage = value.startsWith('tonnage__');
+  const isBW = value.startsWith('bodyweight__');
   progressChart = new Chart(ctx, {
     type:'line',
     data:{
       labels: points.map(p=>formatDate(p.date)),
       datasets:[{
-        label: isTonnage ? 'Тоннаж, кг' : 'Вес, кг',
+        label: isTonnage ? 'Тоннаж, кг' : (isBW ? 'Вес тела, кг' : 'Вес, кг'),
         data: points.map(p=>p.value),
         borderColor:'#C1440E',
         backgroundColor:'rgba(193,68,14,0.15)',
@@ -971,6 +1584,219 @@ function renderProgressChart(value){
   });
 }
 
+function sessionExerciseList(session){
+  if(session.exerciseMeta && Object.keys(session.exerciseMeta).length){
+    return Object.keys(session.exerciseMeta).map(id=>({id, ...session.exerciseMeta[id]}));
+  }
+  const day = getDay(session.dayId);
+  return day ? day.exercises : [];
+}
+
+function sessionDetailLines(session){
+  const list = sessionExerciseList(session);
+  const lines = [];
+  list.forEach(ex=>{
+    const exData = session.data[ex.id];
+    if(!exData || !Object.keys(exData).length){
+      lines.push({name: ex.name, text: '— пока пусто', pending: true});
+      return;
+    }
+    const parts = [];
+    Object.keys(exData).sort((a,b)=>a-b).forEach(setNum=>{
+      const setData = exData[setNum];
+      const compParts = [];
+      ex.components.forEach(comp=>{
+        const entry = setData[comp.key];
+        if(!entry) return;
+        if(entry.time != null) compParts.push(`${entry.time}с`);
+        else if(entry.weight != null && entry.reps != null){
+          const bwTag = entry.bw ? ' (св.вес)' : '';
+          compParts.push(`${entry.weight}×${entry.reps}${bwTag}`);
+        }
+        else if(entry.reps != null) compParts.push(`${entry.reps}`);
+      });
+      if(compParts.length){
+        let partStr = compParts.join('/');
+        if(setData.__done) partStr = '✓ ' + partStr;
+        parts.push(partStr);
+      }
+    });
+    lines.push({name: ex.name, text: parts.length ? parts.join(', ') : '— пока пусто', pending: parts.length===0});
+  });
+  return lines;
+}
+
+function buildWorkoutSummaryText(session){
+  const lines = sessionDetailLines(session);
+  let text = `ТОЧКА ЖЕЛЕЗА\n${session.dayLabel} — ${formatDate(session.date)}\nТоннаж: ${session.tonnage} кг\n\n`;
+  text += lines.map(l=>`${l.name}: ${l.text}`).join('\n');
+  return text;
+}
+
+function buildChartShareText(){
+  const select = document.getElementById('progressSelect');
+  if(!select) return 'Точка железа — прогресс';
+  const value = select.value;
+  const label = select.options[select.selectedIndex].text;
+  const points = buildProgressSeries(value);
+  if(points.length < 2) return `ТОЧКА ЖЕЛЕЗА\n${label}: пока мало данных для тренда.`;
+  const first = points[0], last = points[points.length-1];
+  const diff = Math.round((last.value - first.value)*10)/10;
+  const trend = diff > 0 ? `+${diff}` : `${diff}`;
+  return `ТОЧКА ЖЕЛЕЗА — ПРОГРЕСС\n${label}\n${formatDate(first.date)}: ${first.value}\n${formatDate(last.date)}: ${last.value} (${trend})`;
+}
+
+async function ensureFontsReady(){
+  try{ if(document.fonts && document.fonts.ready) await document.fonts.ready; }catch(e){}
+}
+
+function wrapTextLines(ctx, text, maxWidth){
+  const words = text.split(' ');
+  const result = [];
+  let line = '';
+  words.forEach(word=>{
+    const test = line ? line + ' ' + word : word;
+    if(ctx.measureText(test).width > maxWidth && line){
+      result.push(line);
+      line = word;
+    }else{
+      line = test;
+    }
+  });
+  if(line) result.push(line);
+  return result;
+}
+
+async function buildWorkoutCardBlob(session){
+  await ensureFontsReady();
+  const lines = sessionDetailLines(session);
+  const width = 720;
+  const padding = 40;
+  const headerHeight = 170;
+  const lineHeight = 26;
+
+  const tempCanvas = document.createElement('canvas');
+  const tctx = tempCanvas.getContext('2d');
+  tctx.font = '400 15px Inter, sans-serif';
+  const maxTextWidth = width - padding*2;
+  let totalLines = 0;
+  const wrapped = lines.map(l=>{
+    const full = `${l.name}: ${l.text}`;
+    const wr = wrapTextLines(tctx, full, maxTextWidth);
+    totalLines += wr.length;
+    return { lines: wr, pending: !!l.pending };
+  });
+
+  const height = headerHeight + Math.max(totalLines,1)*lineHeight + padding;
+  const canvas = document.createElement('canvas');
+  canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#17181A';
+  ctx.fillRect(0,0,width,height);
+
+  ctx.fillStyle = '#9B9B95';
+  ctx.font = '600 13px Oswald, sans-serif';
+  ctx.fillText('ТОЧКА ЖЕЛЕЗА', padding, 44);
+
+  ctx.fillStyle = '#EDEAE5';
+  ctx.font = '700 30px Oswald, sans-serif';
+  ctx.fillText(session.dayLabel.toUpperCase(), padding, 84);
+
+  ctx.fillStyle = '#9B9B95';
+  ctx.font = '400 16px Inter, sans-serif';
+  ctx.fillText(formatDate(session.date), padding, 112);
+
+  ctx.fillStyle = '#C1440E';
+  ctx.font = '700 20px Oswald, sans-serif';
+  ctx.fillText(`${session.tonnage} кг тоннаж`, padding, 146);
+
+  ctx.strokeStyle = '#34363B';
+  ctx.beginPath(); ctx.moveTo(padding, headerHeight-14); ctx.lineTo(width-padding, headerHeight-14); ctx.stroke();
+
+  let y = headerHeight + 14;
+  ctx.font = '400 15px Inter, sans-serif';
+  if(wrapped.length === 0){
+    ctx.fillStyle = '#9B9B95';
+    ctx.fillText('Нет данных', padding, y);
+  }
+  wrapped.forEach(item=>{
+    item.lines.forEach((line, li)=>{
+      if(item.pending) ctx.fillStyle = '#5F615F';
+      else ctx.fillStyle = li===0 ? '#EDEAE5' : '#9B9B95';
+      ctx.fillText(line, padding, y);
+      y += lineHeight;
+    });
+  });
+
+  return new Promise(resolve=> canvas.toBlob(resolve, 'image/png'));
+}
+
+async function buildChartShareBlob(){
+  if(!progressChart) return null;
+  await ensureFontsReady();
+  const srcCanvas = progressChart.canvas;
+  const headerHeight = 90;
+  const canvas = document.createElement('canvas');
+  canvas.width = srcCanvas.width;
+  canvas.height = srcCanvas.height + headerHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#17181A';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  ctx.fillStyle = '#9B9B95';
+  ctx.font = '600 13px Oswald, sans-serif';
+  ctx.fillText('ТОЧКА ЖЕЛЕЗА — ПРОГРЕСС', 20, 30);
+
+  ctx.fillStyle = '#EDEAE5';
+  ctx.font = '700 22px Oswald, sans-serif';
+  const select = document.getElementById('progressSelect');
+  const label = select ? select.options[select.selectedIndex].text : '';
+  ctx.fillText(label, 20, 62);
+
+  ctx.drawImage(srcCanvas, 0, headerHeight);
+  return new Promise(resolve=> canvas.toBlob(resolve, 'image/png'));
+}
+
+async function shareResult({ blob, filename, text, title }){
+  try{
+    if(blob && navigator.canShare){
+      const file = new File([blob], filename, { type: blob.type });
+      if(navigator.canShare({ files: [file] })){
+        await navigator.share({ title, text, files: [file] });
+        return;
+      }
+    }
+  }catch(e){ /* cancelled or unsupported, fall through */ }
+
+  try{
+    if(navigator.share){
+      await navigator.share({ title, text });
+      return;
+    }
+  }catch(e){ /* fall through to manual fallback */ }
+
+  if(blob){
+    try{
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 8000);
+    }catch(e){}
+  }
+  try{
+    if(text && navigator.clipboard){
+      await navigator.clipboard.writeText(text);
+      showToast(blob ? 'Картинка сохранена, текст скопирован — вставь в чат вручную' : 'Текст скопирован — вставь в чат вручную', 4200);
+      return;
+    }
+  }catch(e){}
+  showToast(blob ? 'Картинка сохранена — отправь её вручную' : 'Не получилось поделиться', 4200);
+}
+
 function renderHistory(){
   saveBar.style.display = 'none';
   const sessions = [...store.sessions].sort((a,b)=> a.date < b.date ? 1 : -1);
@@ -981,6 +1807,7 @@ function renderHistory(){
     <div class="pb-title">Прогресс</div>
     <select id="progressSelect">${optionsHtml}</select>
     <div class="chart-wrap" id="chartWrap"></div>
+    <button type="button" class="share-chart-btn" id="shareChartBtn">Поделиться графиком</button>
   </div>`;
 
   if(!sessions.length){
@@ -988,34 +1815,13 @@ function renderHistory(){
     mainEl.innerHTML = html;
     document.getElementById('progressSelect').onchange = (e)=> renderProgressChart(e.target.value);
     renderProgressChart(opts[0].value);
+    wireShareChartBtn();
     return;
   }
+
   sessions.forEach((s, idx)=>{
-    const day = PROGRAM.find(d=>d.id===s.dayId);
-    let detail = '';
-    if(day){
-      day.exercises.forEach(ex=>{
-        const exData = s.data[ex.id];
-        if(!exData || !Object.keys(exData).length) return;
-        const parts = [];
-        Object.keys(exData).sort((a,b)=>a-b).forEach(setNum=>{
-          const setData = exData[setNum];
-          const compParts = [];
-          ex.components.forEach(comp=>{
-            const entry = setData[comp.key];
-            if(!entry) return;
-            if(entry.time != null) compParts.push(`${entry.time}с`);
-            else if(entry.weight != null && entry.reps != null){
-              const bwTag = entry.bw ? ' (св.вес)' : '';
-              compParts.push(`${entry.weight}×${entry.reps}${bwTag}`);
-            }
-            else if(entry.reps != null) compParts.push(`${entry.reps}`);
-          });
-          if(compParts.length) parts.push(compParts.join('/'));
-        });
-        if(parts.length) detail += `<div><b>${ex.name}:</b> ${parts.join(', ')}</div>`;
-      });
-    }
+    const lines = sessionDetailLines(s);
+    const detail = lines.map(l=>`<div><b>${l.name}:</b> ${l.text}</div>`).join('');
     html += `<div class="history-item">
       <div class="hi-top" onclick="toggleHistory(${idx})">
         <div>
@@ -1026,7 +1832,10 @@ function renderHistory(){
       </div>
       <div class="hi-detail" id="hi-detail-${idx}">${detail || 'Нет данных'}</div>
       <div class="hi-editrow">
-        <button type="button" class="hi-edit-btn" id="editBtn-${idx}">изменить дату</button>
+        <div class="hi-actions">
+          <button type="button" class="hi-edit-btn" id="editBtn-${idx}">изменить дату</button>
+          <button type="button" class="hi-share-btn" id="shareBtn-${idx}">поделиться</button>
+        </div>
         <div class="hi-edit-form" id="editForm-${idx}">
           <input type="date" id="editDateInput-${idx}" value="${s.date}">
           <button type="button" id="editSaveBtn-${idx}">Сохранить</button>
@@ -1037,27 +1846,62 @@ function renderHistory(){
   mainEl.innerHTML = html;
   document.getElementById('progressSelect').onchange = (e)=> renderProgressChart(e.target.value);
   renderProgressChart(opts[0].value);
+  wireShareChartBtn();
 
   sessions.forEach((s, idx)=>{
     const btn = document.getElementById('editBtn-'+idx);
     const form = document.getElementById('editForm-'+idx);
     const input = document.getElementById('editDateInput-'+idx);
     const saveBtn = document.getElementById('editSaveBtn-'+idx);
-    if(!btn) return;
-    btn.onclick = (e)=>{
-      e.stopPropagation();
-      form.classList.toggle('open');
-    };
-    saveBtn.onclick = (e)=>{
-      e.stopPropagation();
-      const newDate = input.value;
-      if(!newDate) return;
-      s.date = newDate;
-      saveStore(store);
-      showToast('Дата обновлена');
-      renderHistory();
-    };
+    const shareBtn = document.getElementById('shareBtn-'+idx);
+    if(btn){
+      btn.onclick = (e)=>{
+        e.stopPropagation();
+        form.classList.toggle('open');
+      };
+      saveBtn.onclick = (e)=>{
+        e.stopPropagation();
+        const newDate = input.value;
+        if(!newDate) return;
+        s.date = newDate;
+        saveStore(store);
+        showToast('Дата обновлена');
+        renderHistory();
+      };
+    }
+    if(shareBtn){
+      shareBtn.onclick = async (e)=>{
+        e.stopPropagation();
+        const original = shareBtn.textContent;
+        shareBtn.textContent = 'готовлю...';
+        try{
+          const blob = await buildWorkoutCardBlob(s);
+          const text = buildWorkoutSummaryText(s);
+          await shareResult({ blob, filename:`trenirovka-${s.date}.png`, text, title:`${s.dayLabel} — ${formatDate(s.date)}` });
+        }catch(err){
+          showToast('Не получилось подготовить — попробуй ещё раз');
+        }
+        shareBtn.textContent = original;
+      };
+    }
   });
+}
+
+function wireShareChartBtn(){
+  const shareChartBtn = document.getElementById('shareChartBtn');
+  if(!shareChartBtn) return;
+  shareChartBtn.onclick = async ()=>{
+    const original = shareChartBtn.textContent;
+    shareChartBtn.textContent = 'готовлю...';
+    try{
+      const text = buildChartShareText();
+      const blob = await buildChartShareBlob();
+      await shareResult({ blob, filename:'progress.png', text, title:'Прогресс — Точка железа' });
+    }catch(err){
+      showToast('Не получилось подготовить — попробуй ещё раз');
+    }
+    shareChartBtn.textContent = original;
+  };
 }
 
 function toggleHistory(idx){
@@ -1076,12 +1920,39 @@ function render(){
   renderTabs();
   if(activeTab === 'history'){
     renderHistory();
+  }else if(activeTab === '__addday__'){
+    renderAddDay();
   }else{
     currentDate = todayStr();
     renderDay(activeTab);
   }
 }
 
+async function shareCurrentDay(){
+  const dayId = activeTab;
+  const {data, hasAny} = collectDayData(dayId);
+  if(!hasAny){
+    showToast('Нечем делиться — заполни хоть один подход');
+    return;
+  }
+  const dayLabel = getDay(dayId).label;
+  const tons = tonnage(dayId, data);
+  const exerciseMeta = buildExerciseMeta(dayId, data);
+  const session = { date: currentDate, dayId, dayLabel, data, tonnage: tons, exerciseMeta };
+
+  const btn = document.getElementById('shareDayBtn');
+  const original = btn.textContent;
+  btn.textContent = 'готовлю...';
+  try{
+    const blob = await buildWorkoutCardBlob(session);
+    const text = buildWorkoutSummaryText(session);
+    await shareResult({ blob, filename:`trenirovka-${session.date}.png`, text, title:`${dayLabel} — ${formatDate(session.date)}` });
+  }catch(err){
+    showToast('Не получилось подготовить — попробуй ещё раз');
+  }
+  btn.textContent = original;
+}
+document.getElementById('shareDayBtn').onclick = shareCurrentDay;
 document.getElementById('saveBtn').onclick = saveCurrentDay;
 
 async function init(){
