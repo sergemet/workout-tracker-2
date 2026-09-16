@@ -547,6 +547,18 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast-undo-btn{
+  background:none;
+  border:none;
+  color:var(--rust);
+  font-weight:600;
+  font-size:13px;
+  padding:0;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+  text-decoration:underline;
+  pointer-events:auto;
+}
 
 .history-item{
   background:var(--card);
@@ -592,7 +604,7 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   display:flex;
   gap:16px;
 }
-.hi-edit-btn, .hi-share-btn{
+.hi-edit-btn, .hi-share-btn, .hi-delete-btn{
   background:none;
   border:none;
   color:var(--steel);
@@ -602,6 +614,8 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   font-family:'Inter',sans-serif;
 }
 .hi-share-btn{color:var(--rust);}
+.hi-delete-btn{color:var(--rust);}
+.hi-delete-btn.confirming{color:#fff;background:var(--rust);padding:2px 6px;border-radius:5px;}
 .hi-edit-form{
   display:none;
   align-items:center;
@@ -785,7 +799,9 @@ const DAY_IDS = ['day1','day2','day3'];
 
 const STORE_KEY = 'ironpoint_tracker_v1';
 const CLOUD_META_KEY = 'ip_meta';
-const CLOUD_CHUNK_PREFIX = 'ip_chunk_';
+const CLOUD_CHUNK_PREFIX = 'ip_chunk_'; // legacy, pre-double-buffer saves — kept for backward-compat reads
+const CLOUD_CHUNK_PREFIX_A = 'ip_chunk_a_';
+const CLOUD_CHUNK_PREFIX_B = 'ip_chunk_b_';
 const CLOUD_CHUNK_SIZE = 3500;
 const DEFAULT_BW = 81;
 
@@ -811,12 +827,23 @@ function ensureStoreDefaults(s){
   if(!s.lastByDay) s.lastByDay = {};
   if(!s.records) s.records = {};
   if(!s.bodyweightLog) s.bodyweightLog = [];
-  if(!s.program) s.program = cloneDefaultProgram();
-  if(!s.dayOrder) s.dayOrder = DEFAULT_PROGRAM.map(d=>d.id);
-  DEFAULT_PROGRAM.forEach(d=>{
-    if(!s.program[d.id]) s.program[d.id] = JSON.parse(JSON.stringify(d));
-    if(!s.dayOrder.includes(d.id)) s.dayOrder.push(d.id);
-  });
+  if(!s.program){
+    // Genuinely fresh store: seed the default 3-day program.
+    s.program = cloneDefaultProgram();
+    s.dayOrder = DEFAULT_PROGRAM.map(d=>d.id);
+  }
+  if(!s.dayOrder || !s.dayOrder.length){
+    // Older store that has a program but no explicit order yet (pre-dayOrder migration).
+    // Never re-add day1/2/3 here — a missing default day means the user deleted it.
+    s.dayOrder = Object.keys(s.program);
+  }
+  // Defensive: drop any dayOrder entries that no longer exist in program (e.g. after a delete).
+  s.dayOrder = s.dayOrder.filter(id => !!s.program[id]);
+  if(!s.dayOrder.length){
+    // Only reached if program itself is somehow empty — recover rather than show a blank app.
+    s.program = cloneDefaultProgram();
+    s.dayOrder = DEFAULT_PROGRAM.map(d=>d.id);
+  }
   return s;
 }
 
@@ -839,40 +866,66 @@ function saveLocalStore(s){
 }
 
 function cloudGetItem(key){
-  return new Promise(resolve=>{
-    tg.CloudStorage.getItem(key, (err, value)=> resolve(err ? null : value));
+  return new Promise((resolve, reject)=>{
+    tg.CloudStorage.getItem(key, (err, value)=>{
+      if(err) reject(err); else resolve(value);
+    });
   });
 }
 function cloudSetItem(key, value){
-  return new Promise(resolve=>{
-    tg.CloudStorage.setItem(key, value, ()=> resolve());
+  return new Promise((resolve, reject)=>{
+    tg.CloudStorage.setItem(key, value, (err)=>{
+      if(err) reject(err); else resolve();
+    });
   });
 }
 function cloudRemoveItem(key){
-  return new Promise(resolve=>{
-    tg.CloudStorage.removeItem(key, ()=> resolve());
+  return new Promise((resolve, reject)=>{
+    tg.CloudStorage.removeItem(key, (err)=>{
+      if(err) reject(err); else resolve();
+    });
   });
 }
 
+// Returns {found:true, store} when cloud data was read successfully,
+// {found:false} when the cloud is genuinely empty (safe to seed it),
+// {error:true} when the read itself failed (network, parse, missing chunk —
+// never treat this the same as "empty", or a transient glitch could wipe good
+// cloud data with a stale local copy).
+let activeCloudPrefix = null;
+let lastCloudChunkCount = 0;
+
 async function cloudLoadStore(){
+  let metaRaw;
   try{
-    const metaRaw = await cloudGetItem(CLOUD_META_KEY);
-    if(!metaRaw) return null;
+    metaRaw = await cloudGetItem(CLOUD_META_KEY);
+  }catch(e){
+    return {error:true};
+  }
+  if(!metaRaw) return {found:false};
+  try{
     const meta = JSON.parse(metaRaw);
+    const prefix = meta.prefix || CLOUD_CHUNK_PREFIX; // old saves before the double-buffer scheme
     let json = '';
     for(let i=0; i<meta.count; i++){
-      const part = await cloudGetItem(CLOUD_CHUNK_PREFIX + i);
-      if(part == null) return null;
+      const part = await cloudGetItem(prefix + i);
+      if(part == null) throw new Error('missing chunk ' + i);
       json += part;
     }
     const parsed = JSON.parse(json);
-    return ensureStoreDefaults(parsed);
+    activeCloudPrefix = prefix;
+    lastCloudChunkCount = meta.count;
+    return {found:true, store: ensureStoreDefaults(parsed)};
   }catch(e){
-    return null;
+    return {error:true};
   }
 }
 
-let lastCloudChunkCount = 0;
+// Double-buffered write: the brand-new, complete set of chunks is written under
+// whichever prefix ISN'T currently active, and only once every one of those writes
+// has succeeded does the single META key flip over to point at it. A crash or
+// dropped connection at any point before that flip leaves the OLD prefix — still
+// complete, still valid, still what META points to — entirely untouched.
 async function cloudSaveStore(s){
   if(!cloudAvailable()) return;
   const json = JSON.stringify(s);
@@ -880,14 +933,25 @@ async function cloudSaveStore(s){
   for(let i=0; i<json.length; i+=CLOUD_CHUNK_SIZE){
     chunks.push(json.slice(i, i+CLOUD_CHUNK_SIZE));
   }
+  const oldPrefix = activeCloudPrefix || CLOUD_CHUNK_PREFIX_A;
+  const newPrefix = oldPrefix === CLOUD_CHUNK_PREFIX_A ? CLOUD_CHUNK_PREFIX_B : CLOUD_CHUNK_PREFIX_A;
+  const oldCount = lastCloudChunkCount;
+
   for(let i=0; i<chunks.length; i++){
-    await cloudSetItem(CLOUD_CHUNK_PREFIX + i, chunks[i]);
+    await cloudSetItem(newPrefix + i, chunks[i]);
   }
-  for(let i=chunks.length; i<lastCloudChunkCount; i++){
-    await cloudRemoveItem(CLOUD_CHUNK_PREFIX + i);
-  }
+  await cloudSetItem(CLOUD_META_KEY, JSON.stringify({count: chunks.length, prefix: newPrefix}));
+
+  activeCloudPrefix = newPrefix;
   lastCloudChunkCount = chunks.length;
-  await cloudSetItem(CLOUD_META_KEY, JSON.stringify({count: chunks.length}));
+
+  // Best-effort cleanup of the now-unreferenced old chunks. A failure here just
+  // leaves harmless leftovers — META no longer points at them either way.
+  if(oldPrefix !== newPrefix){
+    for(let i=0; i<oldCount; i++){
+      cloudRemoveItem(oldPrefix + i).catch(()=>{});
+    }
+  }
 }
 
 function saveStore(s){
@@ -902,6 +966,19 @@ let activeTab = 'day1';
 let currentDate = todayStr();
 let dayEditMode = false;
 
+// Session-only cache of live, not-yet-saved form values per day, so switching tabs
+// (or triggering a re-render via any edit action) never silently discards typed input.
+// Structure matches store.lastByDay[dayId]: {exId: {setNum: {compKey: entry}}}.
+let drafts = {};
+// Which day's fields are actually sitting in the DOM right now (or null for history/add-day).
+let domDayId = null;
+
+function captureOutgoingDraft(){
+  if(domDayId){
+    try{ drafts[domDayId] = collectDayData(domDayId).data; }catch(e){}
+  }
+}
+
 function todayStr(){
   const d = new Date();
   const pad = n => String(n).padStart(2,'0');
@@ -913,7 +990,7 @@ function currentBW(){
 }
 
 function getDay(dayId){ return store.program[dayId]; }
-function allDays(){ return store.dayOrder.map(id=>store.program[id]); }
+function allDays(){ return store.dayOrder.map(id=>store.program[id]).filter(Boolean); }
 
 const tabsEl = document.getElementById('tabs');
 const mainEl = document.getElementById('main');
@@ -922,14 +999,18 @@ const toastEl = document.getElementById('toast');
 const bwInput = document.getElementById('bwInput');
 const syncStatusEl = document.getElementById('syncStatus');
 
+function logBodyweight(date, weight){
+  if(!store.bodyweightLog) store.bodyweightLog = [];
+  const idx = store.bodyweightLog.findIndex(e=>e.date===date);
+  if(idx >= 0) store.bodyweightLog[idx].weight = weight;
+  else store.bodyweightLog.push({date, weight});
+}
+
 bwInput.onchange = ()=>{
   const v = Number(bwInput.value);
   if(v > 0){
     store.settings.bodyweight = v;
-    const today = todayStr();
-    const idx = store.bodyweightLog.findIndex(e=>e.date===today);
-    if(idx >= 0) store.bodyweightLog[idx].weight = v;
-    else store.bodyweightLog.push({date: today, weight: v});
+    logBodyweight(todayStr(), v);
     saveStore(store);
     showToast(`Вес обновлён: ${v} кг`);
   }
@@ -949,6 +1030,8 @@ function renderTabs(){
 }
 
 function renderAddDay(){
+  captureOutgoingDraft();
+  domDayId = null;
   saveBar.style.display = 'none';
   mainEl.innerHTML = `
     <div class="add-ex-form open" style="margin-top:16px;">
@@ -997,21 +1080,13 @@ window.toggleBW = toggleBW;
 function fieldHTML(exId, setIdx, comp, placeholder){
   const name = `${exId}__${setIdx}__${comp.key}`;
 
-  if(!comp.weight && !comp.time && !comp.bodyweightOption){
+  if(!comp.weight && !comp.bodyweightOption){
     return '';
-  }
-
-  if(comp.time){
-    const val = (placeholder && placeholder.time != null) ? ` value="${placeholder.time}"` : '';
-    return `<div class="field solo">
-      <input type="number" inputmode="numeric" data-field="${name}" data-kind="time"${val} placeholder="—">
-      <span>сек</span>
-    </div>`;
   }
 
   if(comp.bodyweightOption){
     const wasBW = placeholder ? placeholder.bw !== false : true;
-    const extraVal = (wasBW && placeholder && placeholder.extra != null) ? ` value="${placeholder.extra}"` : '';
+    const extraVal = (wasBW && placeholder && placeholder.extra) ? ` value="${placeholder.extra}"` : '';
     const manualVal = (!wasBW && placeholder && placeholder.weight != null) ? ` value="${placeholder.weight}"` : '';
     const repsVal = (placeholder && placeholder.reps != null) ? ` value="${placeholder.reps}"` : '';
     return `
@@ -1021,16 +1096,16 @@ function fieldHTML(exId, setIdx, comp, placeholder){
           свой вес
         </label>
         <div class="field first" id="extraWrap-${name}" style="display:${wasBW ? 'flex' : 'none'}">
-          <input type="number" step="0.5" inputmode="decimal" data-field="${name}" data-kind="extra"${extraVal} placeholder="0">
+          <input type="number" step="0.5" inputmode="decimal" data-field="${name}" min="0" data-kind="extra"${extraVal} placeholder="0">
           <span>+кг</span>
         </div>
         <div class="field first" id="manualWrap-${name}" style="display:${wasBW ? 'none' : 'flex'}">
-          <input type="number" step="0.5" inputmode="decimal" data-field="${name}" data-kind="weight"${manualVal} placeholder="—">
+          <input type="number" step="0.5" inputmode="decimal" data-field="${name}" min="0" data-kind="weight"${manualVal} placeholder="—">
           <span>кг</span>
         </div>
       </div>
       <div class="field ${comp.time ? 'solo' : 'sep'}">
-        <input type="number" inputmode="numeric" data-field="${name}" data-kind="reps"${repsVal} placeholder="—">
+        <input type="number" inputmode="numeric" data-field="${name}" min="0" data-kind="reps"${repsVal} placeholder="—">
         <span>повт</span>
       </div>`;
   }
@@ -1039,13 +1114,13 @@ function fieldHTML(exId, setIdx, comp, placeholder){
   if(comp.weight){
     const weightVal = (placeholder && placeholder.weight != null) ? ` value="${placeholder.weight}"` : '';
     html += `<div class="field first">
-      <input type="number" step="0.5" inputmode="decimal" data-field="${name}" data-kind="weight"${weightVal} placeholder="—">
+      <input type="number" step="0.5" inputmode="decimal" data-field="${name}" min="0" data-kind="weight"${weightVal} placeholder="—">
       <span>кг</span>
     </div>`;
   }
   const repsVal2 = (placeholder && placeholder.reps != null) ? ` value="${placeholder.reps}"` : '';
   html += `<div class="field ${comp.weight ? 'sep' : 'solo'}">
-    <input type="number" inputmode="numeric" data-field="${name}" data-kind="reps"${repsVal2} placeholder="—">
+    <input type="number" inputmode="numeric" data-field="${name}" min="0" data-kind="reps"${repsVal2} placeholder="—">
     <span>повт</span>
   </div>`;
   return html;
@@ -1095,19 +1170,27 @@ function addExerciseFormHTML(dayId){
 }
 
 function renderDay(dayId){
+  captureOutgoingDraft();
   const day = getDay(dayId);
+  if(!day){
+    domDayId = null;
+    mainEl.innerHTML = '<div class="empty">День не найден</div>';
+    saveBar.style.display = 'none';
+    return;
+  }
+  const draft = drafts[dayId] || {};
   const last = (store.lastByDay[dayId]) || {};
 
   let html = `
     <div class="day-toolbar">
       <div class="day-date">
         <label>Дата тренировки</label>
-        <input type="date" id="dateInput" value="${currentDate}">
+        <input type="date" id="dateInput" value="${escapeHTML(currentDate)}">
       </div>
       <button type="button" class="edit-toggle-btn ${dayEditMode ? 'active' : ''}" id="editModeBtn">${dayEditMode ? 'Готово' : 'Редактировать день'}</button>
     </div>
     ${dayEditMode ? `<div class="day-delete-row">
-      <button type="button" class="day-delete-btn" onclick="requestDeleteDay('${dayId}', this)">Удалить весь день «${day.label}»</button>
+      <button type="button" class="day-delete-btn" onclick="requestDeleteDay('${dayId}', this)">Удалить весь день «${escapeHTML(day.label)}»</button>
     </div>` : ''}
   `;
 
@@ -1119,9 +1202,9 @@ function renderDay(dayId){
     html += `<div class="card">
       <div class="ex-head">
         ${dayEditMode
-          ? `<input type="text" class="ex-name-input" value="${escapeAttr(ex.name)}" onblur="saveRenameInline('${dayId}','${ex.id}', this.value)" onkeydown="if(event.key==='Enter') this.blur()">`
-          : `<div class="ex-name">${ex.name}</div>`}
-        ${ex.tag ? `<div class="ex-tag">${ex.tag}</div>` : ''}
+          ? `<input type="text" class="ex-name-input" value="${escapeHTML(ex.name)}" onblur="saveRenameInline('${dayId}','${ex.id}', this.value, this)" onkeydown="if(event.key==='Enter') this.blur()">`
+          : `<div class="ex-name">${escapeHTML(ex.name)}</div>`}
+        ${ex.tag ? `<div class="ex-tag">${escapeHTML(ex.tag)}</div>` : ''}
         ${dayEditMode ? `<button type="button" class="ex-delete-btn" onclick="requestDeleteExercise('${dayId}','${ex.id}', this)">Удалить</button>` : ''}
       </div>
       <div class="ex-sub">${ex.sets} подход${ex.sets===1?'':(ex.sets<5?'а':'ов')} · целевой диапазон см. ниже</div>
@@ -1129,18 +1212,20 @@ function renderDay(dayId){
 
     for(let s=1; s<=ex.sets; s++){
       const lastSet = last[ex.id] && last[ex.id][s];
+      const draftSet = draft[ex.id] && draft[ex.id][s];
+      const effectiveSet = (draftSet && Object.keys(draftSet).length) ? draftSet : lastSet;
       const showLabel = ex.components.length > 1 || ex.sets > 1;
-      const doneChecked = lastSet && lastSet.__done ? 'checked' : '';
+      const doneChecked = effectiveSet && effectiveSet.__done ? 'checked' : '';
       const canDeleteSet = dayEditMode && ex.sets > 1;
       const doneToggleHTML = `<label class="round-done-toggle"><input type="checkbox" data-doneref="${ex.id}__${s}" ${doneChecked}> выполнено</label>`;
       html += `<div class="round">
         ${showLabel ? `<div class="round-label-line"><span class="round-label">Подход ${s}</span>${canDeleteSet ? `<button type="button" class="round-del-btn" onclick="deleteSet('${dayId}','${ex.id}',${s})">×</button>` : ''}</div>` : ''}`;
       ex.components.forEach((comp, ci)=>{
-        const placeholder = lastSet ? lastSet[comp.key] : null;
+        const placeholder = effectiveSet ? effectiveSet[comp.key] : null;
         const isLast = ci === ex.components.length - 1;
         html += `<div class="comp">
-          <div class="comp-label">${comp.label || 'Результат'}</div>
-          <div class="comp-target">${comp.target}</div>
+          <div class="comp-label">${escapeHTML(comp.label || 'Результат')}</div>
+          <div class="comp-target">${escapeHTML(comp.target)}</div>
           ${fieldHTML(ex.id, s, comp, placeholder)}
           ${isLast ? doneToggleHTML : ''}
         </div>`;
@@ -1161,6 +1246,7 @@ function renderDay(dayId){
   }
 
   mainEl.innerHTML = html;
+  domDayId = dayId;
   document.getElementById('dateInput').onchange = (e)=>{ currentDate = e.target.value; };
   document.getElementById('editModeBtn').onclick = ()=>{ dayEditMode = !dayEditMode; renderDay(dayId); };
   saveBar.style.display = 'flex';
@@ -1200,23 +1286,40 @@ function adjustSets(dayId, exId, delta){
 }
 window.adjustSets = adjustSets;
 
+function reindexSetsAfterDelete(dayData, exId, setIndex){
+  if(!dayData) return;
+  const exData = dayData[exId];
+  if(!exData) return;
+  const shifted = {};
+  Object.keys(exData).sort((a,b)=>a-b).forEach(k=>{
+    const num = Number(k);
+    if(num < setIndex) shifted[num] = exData[k];
+    else if(num > setIndex) shifted[num-1] = exData[k];
+    // num === setIndex is the deleted set — dropped on purpose.
+  });
+  dayData[exId] = shifted;
+}
+
 function deleteSet(dayId, exId, setIndex){
   const day = getDay(dayId);
   const ex = day.exercises.find(e=>e.id===exId);
   if(!ex || ex.sets <= 1){ showToast('Должен остаться хотя бы один подход'); return; }
-  if(!store.lastByDay[dayId]) store.lastByDay[dayId] = {};
-  const last = store.lastByDay[dayId][exId];
-  if(last){
-    const shifted = {};
-    Object.keys(last).sort((a,b)=>a-b).forEach(k=>{
-      const num = Number(k);
-      if(num < setIndex) shifted[num] = last[k];
-      else if(num > setIndex) shifted[num-1] = last[k];
-    });
-    store.lastByDay[dayId][exId] = shifted;
+
+  // Capture whatever is live in the DOM right now (still under the OLD numbering)
+  // before anything shifts, so typed-but-unsaved values move with the reindex too.
+  if(domDayId === dayId){
+    try{ drafts[dayId] = collectDayData(dayId).data; }catch(e){ drafts[dayId] = drafts[dayId] || {}; }
   }
+  if(!store.lastByDay[dayId]) store.lastByDay[dayId] = {};
+
+  reindexSetsAfterDelete(drafts[dayId], exId, setIndex);
+  reindexSetsAfterDelete(store.lastByDay[dayId], exId, setIndex);
+
   ex.sets -= 1;
   saveStore(store);
+  // Renders read from the freshly-reindexed draft above — tell renderDay not to
+  // re-capture the (now stale, still-old-numbering) DOM over it.
+  domDayId = null;
   renderDay(dayId);
 }
 window.deleteSet = deleteSet;
@@ -1232,7 +1335,7 @@ function requestDeleteExercise(dayId, exId, btn){
   setTimeout(()=>{
     if(btn.dataset.confirming === '1'){
       btn.dataset.confirming = '';
-      btn.textContent = 'Удалить упражнение';
+      btn.textContent = 'Удалить';
       btn.classList.remove('confirming');
     }
   }, 4000);
@@ -1268,27 +1371,43 @@ function deleteDay(dayId){
   store.dayOrder = store.dayOrder.filter(id=>id!==dayId);
   delete store.program[dayId];
   delete store.lastByDay[dayId];
+  delete drafts[dayId];
   saveStore(store);
   activeTab = store.dayOrder[0];
   dayEditMode = false;
+  domDayId = null;
   showToast(`День «${label}» удалён. История тренировок за него осталась.`, 4200);
   render();
 }
 
-function escapeAttr(str){
-  return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+function escapeHTML(str){
+  return String(str == null ? '' : str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
 }
 
-function saveRenameInline(dayId, exId, value){
+function saveRenameInline(dayId, exId, value, inputEl){
   const val = value.trim();
   const day = getDay(dayId);
   const ex = day.exercises.find(e=>e.id===exId);
   if(!ex) return;
-  if(!val){ renderDay(dayId); return; }
+  if(!val){
+    // Revert just this input, in place — no full re-render, so a click on a
+    // neighbouring button (delete/add/done) that triggered this blur still lands
+    // on the same element instead of one that just got replaced underneath it.
+    if(inputEl) inputEl.value = ex.name;
+    showToast('Название не может быть пустым');
+    return;
+  }
   if(val === ex.name) return;
   ex.name = val;
   saveStore(store);
-  renderDay(dayId);
+  // No renderDay() here on purpose — the input already shows the new text,
+  // nothing else on screen depends on the name, and re-rendering mid-blur is
+  // exactly what caused buttons next to it to eat a click.
 }
 window.saveRenameInline = saveRenameInline;
 
@@ -1346,6 +1465,7 @@ function addExercise(dayId){
 
 function collectDayData(dayId){
   const day = getDay(dayId);
+  if(!day) return {data:{}, hasAny:false};
   const bw = currentBW();
   const data = {};
   let hasAny = false;
@@ -1356,10 +1476,7 @@ function collectDayData(dayId){
       let setHasAny = false;
       ex.components.forEach(comp=>{
         const entry = {};
-        if(comp.time){
-          const el = document.querySelector(`[data-field="${ex.id}__${s}__${comp.key}"][data-kind="time"]`);
-          if(el && el.value !== ''){ entry.time = Number(el.value); setHasAny = true; }
-        }else if(comp.bodyweightOption){
+        if(comp.bodyweightOption){
           const name = `${ex.id}__${s}__${comp.key}`;
           const cb = document.querySelector(`[data-bwtoggle="${name}"]`);
           const isBW = cb ? cb.checked : true;
@@ -1462,6 +1579,28 @@ function showToast(msg, ms=2600){
   showToast._t = setTimeout(()=>toastEl.classList.remove('show'), ms);
 }
 
+let toastUndoHandler = null;
+function showUndoToast(msg, undoFn, ms=5000){
+  toastEl.innerHTML = '';
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = msg + ' ';
+  const undoBtn = document.createElement('button');
+  undoBtn.type = 'button';
+  undoBtn.className = 'toast-undo-btn';
+  undoBtn.textContent = 'Отменить';
+  undoBtn.onclick = ()=>{
+    toastEl.classList.remove('show');
+    clearTimeout(showToast._t);
+    if(toastUndoHandler){ toastUndoHandler(); toastUndoHandler = null; }
+  };
+  toastEl.appendChild(msgSpan);
+  toastEl.appendChild(undoBtn);
+  toastUndoHandler = undoFn;
+  toastEl.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>{ toastEl.classList.remove('show'); toastUndoHandler = null; }, ms);
+}
+
 function saveCurrentDay(){
   const dayId = activeTab;
   const {data, hasAny} = collectDayData(dayId);
@@ -1473,8 +1612,11 @@ function saveCurrentDay(){
   const tons = tonnage(dayId, data);
   const newRecords = updateRecords(dayId, data);
   const exerciseMeta = buildExerciseMeta(dayId, data);
+  logBodyweight(todayStr(), currentBW());
 
-  const prevTonSessions = store.sessions.filter(s=>s.dayId===dayId).sort((a,b)=> a.date < b.date ? 1 : -1);
+  const prevTonSessions = store.sessions
+    .filter(s=>s.dayId===dayId && s.date!==currentDate)
+    .sort((a,b)=> a.date < b.date ? 1 : -1);
   const prevTon = prevTonSessions.length ? prevTonSessions[0].tonnage : null;
 
   const existingIdx = store.sessions.findIndex(s=>s.dayId===dayId && s.date===currentDate);
@@ -1766,14 +1908,20 @@ async function shareResult({ blob, filename, text, title }){
         return;
       }
     }
-  }catch(e){ /* cancelled or unsupported, fall through */ }
+  }catch(e){
+    if(e && e.name === 'AbortError') return; // user cancelled the share sheet on purpose — leave it at that
+    /* anything else (unsupported, real failure) — fall through to the next attempt */
+  }
 
   try{
     if(navigator.share){
       await navigator.share({ title, text });
       return;
     }
-  }catch(e){ /* fall through to manual fallback */ }
+  }catch(e){
+    if(e && e.name === 'AbortError') return;
+    /* fall through to manual fallback */
+  }
 
   if(blob){
     try{
@@ -1798,11 +1946,13 @@ async function shareResult({ blob, filename, text, title }){
 }
 
 function renderHistory(){
+  captureOutgoingDraft();
+  domDayId = null;
   saveBar.style.display = 'none';
   const sessions = [...store.sessions].sort((a,b)=> a.date < b.date ? 1 : -1);
 
   const opts = progressOptions();
-  const optionsHtml = opts.map(o=>`<option value="${o.value}">${o.label}</option>`).join('');
+  const optionsHtml = opts.map(o=>`<option value="${escapeHTML(o.value)}">${escapeHTML(o.label)}</option>`).join('');
   let html = `<div class="progress-block">
     <div class="pb-title">Прогресс</div>
     <select id="progressSelect">${optionsHtml}</select>
@@ -1821,12 +1971,12 @@ function renderHistory(){
 
   sessions.forEach((s, idx)=>{
     const lines = sessionDetailLines(s);
-    const detail = lines.map(l=>`<div><b>${l.name}:</b> ${l.text}</div>`).join('');
+    const detail = lines.map(l=>`<div><b>${escapeHTML(l.name)}:</b> ${escapeHTML(l.text)}</div>`).join('');
     html += `<div class="history-item">
       <div class="hi-top" onclick="toggleHistory(${idx})">
         <div>
-          <div class="hi-date">${formatDate(s.date)}</div>
-          <div class="hi-day">${s.dayLabel}</div>
+          <div class="hi-date">${escapeHTML(formatDate(s.date))}</div>
+          <div class="hi-day">${escapeHTML(s.dayLabel)}</div>
         </div>
         <div class="hi-tonnage">${s.tonnage} кг</div>
       </div>
@@ -1835,9 +1985,10 @@ function renderHistory(){
         <div class="hi-actions">
           <button type="button" class="hi-edit-btn" id="editBtn-${idx}">изменить дату</button>
           <button type="button" class="hi-share-btn" id="shareBtn-${idx}">поделиться</button>
+          <button type="button" class="hi-delete-btn" id="deleteSessionBtn-${idx}">удалить запись</button>
         </div>
         <div class="hi-edit-form" id="editForm-${idx}">
-          <input type="date" id="editDateInput-${idx}" value="${s.date}">
+          <input type="date" id="editDateInput-${idx}" value="${escapeHTML(s.date)}">
           <button type="button" id="editSaveBtn-${idx}">Сохранить</button>
         </div>
       </div>
@@ -1854,6 +2005,7 @@ function renderHistory(){
     const input = document.getElementById('editDateInput-'+idx);
     const saveBtn = document.getElementById('editSaveBtn-'+idx);
     const shareBtn = document.getElementById('shareBtn-'+idx);
+    const deleteBtn = document.getElementById('deleteSessionBtn-'+idx);
     if(btn){
       btn.onclick = (e)=>{
         e.stopPropagation();
@@ -1863,10 +2015,44 @@ function renderHistory(){
         e.stopPropagation();
         const newDate = input.value;
         if(!newDate) return;
+        if(newDate === s.date) return;
+        const dup = store.sessions.find(x => x !== s && x.dayId === s.dayId && x.date === newDate);
+        if(dup){
+          showToast('На эту дату уже есть запись для этого дня', 3200);
+          return;
+        }
         s.date = newDate;
         saveStore(store);
         showToast('Дата обновлена');
         renderHistory();
+      };
+    }
+    if(deleteBtn){
+      deleteBtn.onclick = (e)=>{
+        e.stopPropagation();
+        if(deleteBtn.dataset.confirming === '1'){
+          const idx = store.sessions.indexOf(s);
+          if(idx === -1) return;
+          store.sessions.splice(idx, 1);
+          saveStore(store);
+          renderHistory();
+          showUndoToast('Запись удалена.', ()=>{
+            store.sessions.splice(idx, 0, s);
+            saveStore(store);
+            renderHistory();
+          });
+          return;
+        }
+        deleteBtn.dataset.confirming = '1';
+        deleteBtn.textContent = 'точно? ещё раз';
+        deleteBtn.classList.add('confirming');
+        setTimeout(()=>{
+          if(deleteBtn.dataset.confirming === '1'){
+            deleteBtn.dataset.confirming = '';
+            deleteBtn.textContent = 'удалить запись';
+            deleteBtn.classList.remove('confirming');
+          }
+        }, 4000);
       };
     }
     if(shareBtn){
@@ -1906,24 +2092,30 @@ function wireShareChartBtn(){
 
 function toggleHistory(idx){
   const el = document.getElementById(`hi-detail-${idx}`);
-  el.classList.toggle('open');
+  if(el) el.classList.toggle('open');
 }
 window.toggleHistory = toggleHistory;
 
 function formatDate(str){
+  if(!str) return '';
   const [y,m,d] = str.split('-');
   const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
   return `${Number(d)} ${months[Number(m)-1]} ${y}`;
 }
 
 function render(){
+  if(activeTab !== 'history' && activeTab !== '__addday__' && !getDay(activeTab)){
+    // The remembered tab points at a day that no longer exists (deleted, or a stale
+    // reference from before a cloud sync) — fall back to the first real day instead
+    // of showing a dead "День не найден" screen.
+    activeTab = store.dayOrder[0];
+  }
   renderTabs();
   if(activeTab === 'history'){
     renderHistory();
   }else if(activeTab === '__addday__'){
     renderAddDay();
   }else{
-    currentDate = todayStr();
     renderDay(activeTab);
   }
 }
@@ -1961,21 +2153,27 @@ async function init(){
   render();
 
   if(cloudAvailable()){
-    const cloud = await cloudLoadStore();
-    if(cloud){
-      store = cloud;
-      const metaRaw = await cloudGetItem(CLOUD_META_KEY);
-      if(metaRaw){
-        try{ lastCloudChunkCount = JSON.parse(metaRaw).count || 0; }catch(e){}
-      }
+    const result = await cloudLoadStore();
+    if(result.error){
+      // Couldn't confirm what's in the cloud — do NOT push local over it, a
+      // transient glitch here should never be able to wipe good cloud data.
+      syncStatusEl.className = 'sync-status off';
+      syncStatusEl.innerHTML = '<span class="dot"></span>не удалось связаться с облаком — работаю локально';
+    }else if(result.found){
+      store = result.store;
+      // lastCloudChunkCount and activeCloudPrefix are already set inside cloudLoadStore.
       saveLocalStore(store);
       bwInput.value = currentBW();
+      domDayId = null;
       render();
+      syncStatusEl.className = 'sync-status on';
+      syncStatusEl.innerHTML = '<span class="dot"></span>Telegram Mini App — синхронизация включена';
     }else{
+      // Genuinely empty cloud (confirmed, not just "couldn't check") — safe to seed it.
       cloudSaveStore(store).catch(()=>{});
+      syncStatusEl.className = 'sync-status on';
+      syncStatusEl.innerHTML = '<span class="dot"></span>Telegram Mini App — синхронизация включена';
     }
-    syncStatusEl.className = 'sync-status on';
-    syncStatusEl.innerHTML = '<span class="dot"></span>Telegram Mini App — синхронизация включена';
   }else{
     syncStatusEl.className = 'sync-status off';
     syncStatusEl.innerHTML = '<span class="dot"></span>локальный режим (открой через бота в Telegram для синхронизации)';
