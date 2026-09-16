@@ -848,6 +848,56 @@ function ensureStoreDefaults(s){
   return s;
 }
 
+// Two devices can each make real, independent edits between syncs (add an exercise on the
+// phone, log a workout on the computer) before either sees the other's update. Picking
+// "whichever store is newer" as a whole discards the other device's work outright — this
+// merges the two instead: unions program/days/exercises, sessions, records, and the
+// bodyweight log, so nothing either device added gets silently lost. Scalar settings (like
+// the bodyweight number itself) come from whichever side is more recently touched overall.
+function mergeStores(a, b){
+  const primary = (b.updatedAt || 0) >= (a.updatedAt || 0) ? b : a;
+  const secondary = primary === b ? a : b;
+  const merged = JSON.parse(JSON.stringify(primary));
+
+  Object.keys(secondary.program || {}).forEach(dayId=>{
+    if(!merged.program[dayId]){
+      merged.program[dayId] = secondary.program[dayId];
+      if(!merged.dayOrder.includes(dayId)) merged.dayOrder.push(dayId);
+    }else{
+      const existingIds = new Set(merged.program[dayId].exercises.map(e=>e.id));
+      (secondary.program[dayId].exercises || []).forEach(ex=>{
+        if(!existingIds.has(ex.id)) merged.program[dayId].exercises.push(ex);
+      });
+    }
+  });
+
+  const sessionKey = s => s.dayId + '__' + s.date;
+  const seenSessions = new Set(merged.sessions.map(sessionKey));
+  (secondary.sessions || []).forEach(s=>{
+    const k = sessionKey(s);
+    if(!seenSessions.has(k)){ merged.sessions.push(s); seenSessions.add(k); }
+  });
+
+  Object.keys(secondary.records || {}).forEach(k=>{
+    const have = merged.records[k];
+    const cand = secondary.records[k];
+    if(!have || cand.weight > have.weight || (cand.weight === have.weight && cand.reps > have.reps)){
+      merged.records[k] = cand;
+    }
+  });
+
+  const seenBwDates = new Set(merged.bodyweightLog.map(e=>e.date));
+  (secondary.bodyweightLog || []).forEach(e=>{
+    if(!seenBwDates.has(e.date)){ merged.bodyweightLog.push(e); seenBwDates.add(e.date); }
+  });
+
+  // lastByDay is just prefill convenience data, not a record of truth — the newer side's
+  // copy (already in `merged` via primary) is a perfectly fine choice, nothing to union here.
+
+  merged.updatedAt = Date.now();
+  return merged;
+}
+
 function defaultStore(){
   return ensureStoreDefaults({});
 }
@@ -2162,19 +2212,13 @@ async function init(){
       syncStatusEl.className = 'sync-status off';
       syncStatusEl.innerHTML = '<span class="dot"></span>не удалось связаться с облаком — работаю локально';
     }else if(result.found){
-      if((result.store.updatedAt || 0) > (store.updatedAt || 0)){
-        // The cloud copy is genuinely newer (edited elsewhere) — adopt it.
-        store = result.store;
-        saveLocalStore(store);
-        bwInput.value = currentBW();
-        domDayId = null;
-        render();
-      }else{
-        // Local is the same age or newer — the cloud copy is stale, most likely because
-        // an earlier save's background push never finished. Never discard newer local
-        // work just because the cloud answered first; push local up to catch cloud up.
-        cloudSaveStore(store).catch(()=>{});
-      }
+      store = mergeStores(store, result.store);
+      saveLocalStore(store);
+      bwInput.value = currentBW();
+      domDayId = null;
+      render();
+      // Push the merged result back so both sides converge on the same combined data.
+      cloudSaveStore(store).catch(()=>{});
       syncStatusEl.className = 'sync-status on';
       syncStatusEl.innerHTML = '<span class="dot"></span>Telegram Mini App — синхронизация включена';
     }else{
