@@ -827,6 +827,7 @@ function ensureStoreDefaults(s){
   if(!s.lastByDay) s.lastByDay = {};
   if(!s.records) s.records = {};
   if(!s.bodyweightLog) s.bodyweightLog = [];
+  if(!s.updatedAt) s.updatedAt = 0; // untimestamped/legacy data always loses to anything timestamped
   if(!s.program){
     // Genuinely fresh store: seed the default 3-day program.
     s.program = cloneDefaultProgram();
@@ -955,6 +956,7 @@ async function cloudSaveStore(s){
 }
 
 function saveStore(s){
+  s.updatedAt = Date.now();
   saveLocalStore(s);
   if(cloudAvailable()){
     cloudSaveStore(s).catch(()=>{});
@@ -2160,12 +2162,19 @@ async function init(){
       syncStatusEl.className = 'sync-status off';
       syncStatusEl.innerHTML = '<span class="dot"></span>не удалось связаться с облаком — работаю локально';
     }else if(result.found){
-      store = result.store;
-      // lastCloudChunkCount and activeCloudPrefix are already set inside cloudLoadStore.
-      saveLocalStore(store);
-      bwInput.value = currentBW();
-      domDayId = null;
-      render();
+      if((result.store.updatedAt || 0) > (store.updatedAt || 0)){
+        // The cloud copy is genuinely newer (edited elsewhere) — adopt it.
+        store = result.store;
+        saveLocalStore(store);
+        bwInput.value = currentBW();
+        domDayId = null;
+        render();
+      }else{
+        // Local is the same age or newer — the cloud copy is stale, most likely because
+        // an earlier save's background push never finished. Never discard newer local
+        // work just because the cloud answered first; push local up to catch cloud up.
+        cloudSaveStore(store).catch(()=>{});
+      }
       syncStatusEl.className = 'sync-status on';
       syncStatusEl.innerHTML = '<span class="dot"></span>Telegram Mini App — синхронизация включена';
     }else{
