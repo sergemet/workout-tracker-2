@@ -1031,32 +1031,39 @@ async function cloudSaveStore(s){
   }
 }
 
-// Two overlapping cloudSaveStore() calls would both read activeCloudPrefix before either
-// had finished updating it, and both end up writing (and racing on) the same "new" prefix.
-// Everything funnels through this one chained promise so writes always run strictly one
-// after another, never concurrently.
-let cloudWriteChain = Promise.resolve();
+// Единая очередь для ЛЮБЫХ облачных операций — и записей, и чтений. Раньше чтение
+// шло параллельно записи и могло прочитать старый префикс, пока новый ещё коммитится;
+// последующий merge-and-push затирал только что записанные с другого устройства данные.
+// Всё — в одном chain, чтобы запись и чтение никогда не пересекались.
+let cloudOpChain = Promise.resolve();
+
+function enqueueCloudOp(fn){
+  const run = () => fn();
+  const next = cloudOpChain.then(run, run);
+  // Не даём отказу отравить цепочку — проглатываем здесь, наружу отдаём через next.
+  cloudOpChain = next.catch(()=>{});
+  return next;
+}
+
 let cloudDebounceTimer = null;
 
 function enqueueCloudWrite(s){
-  cloudWriteChain = cloudWriteChain.then(
-    () => cloudSaveStore(s),
-    () => cloudSaveStore(s) // a prior failure shouldn't block all future attempts
-  ).catch(()=>{
+  return enqueueCloudOp(()=> cloudSaveStore(s)).catch(()=>{
     showToast('Не удалось сохранить в облако — проверь связь, попробуем при следующем изменении', 3600);
   });
-  return cloudWriteChain;
 }
 
-// For frequent UI-driven saves (+подход, ×, переименование...) — waits a beat so a burst
-// of quick actions becomes one cloud write instead of one per click.
-function queueCloudSave(s){
+// UI-driven saves (+подход, ×, переименование...) — ждём паузу, чтобы серия кликов
+// превратилась в одну запись. ВАЖНО: в setTimeout читаем глобальный `store`, а не
+// захваченный аргумент — иначе после syncWithCloud (store = mergeStores(...))
+// отложенная запись уйдёт со старым объектом и затрёт только что смёрженные данные.
+function queueCloudSave(){
   if(!cloudAvailable()) return;
   clearTimeout(cloudDebounceTimer);
-  cloudDebounceTimer = setTimeout(()=> enqueueCloudWrite(s), 600);
+  cloudDebounceTimer = setTimeout(()=> enqueueCloudWrite(store), 600);
 }
 
-// For one-off startup/catch-up pushes where waiting serves no purpose.
+// Одноразовый немедленный пуш (старт, catch-up после merge).
 function cloudSaveNow(s){
   if(!cloudAvailable()) return Promise.resolve();
   clearTimeout(cloudDebounceTimer);
@@ -1066,7 +1073,7 @@ function cloudSaveNow(s){
 function saveStore(s){
   s.updatedAt = Date.now();
   saveLocalStore(s);
-  queueCloudSave(s);
+  queueCloudSave();
 }
 
 let store = defaultStore();
@@ -2271,7 +2278,11 @@ async function syncWithCloud(isInitial){
   if(cloudSyncInProgress) return;
   cloudSyncInProgress = true;
   try{
-    const result = await cloudLoadStore();
+    // Ждём, пока все уже поставленные записи долетят, и только потом читаем —
+    // иначе можно прочитать старый префикс и затереть только что записанный новый.
+    // Само чтение тоже идёт через очередь, чтобы никакая запись не влезла посреди него.
+    const result = await enqueueCloudOp(()=> cloudLoadStore());
+
     if(result.error){
       // Couldn't confirm what's in the cloud — do NOT push local over it, a
       // transient glitch here should never be able to wipe good cloud data.
