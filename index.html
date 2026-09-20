@@ -529,6 +529,9 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 }
 .save-bar button.share-day-btn:active{background:#33353b;}
 
+/* Тосты: opacity:0 не убирает элемент из hit-testing — невидимая кнопка «Отменить»
+   продолжала перехватывать тапы внизу по центру. visibility:hidden это лечит,
+   а transition на visibility даёт элементу плавно исчезнуть в конце фейда. */
 .toast{
   position:fixed;
   bottom:78px;
@@ -542,11 +545,16 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   font-size:13px;
   max-width:90%;
   opacity:0;
-  transition:opacity .25s, transform .25s;
+  visibility:hidden;
+  transition:opacity .25s, transform .25s, visibility .25s;
   pointer-events:none;
   text-align:center;
 }
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.show{
+  opacity:1;
+  visibility:visible;
+  transform:translateX(-50%) translateY(0);
+}
 .toast-undo-btn{
   background:none;
   border:none;
@@ -604,18 +612,27 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   display:flex;
   gap:16px;
 }
-.hi-edit-btn, .hi-share-btn, .hi-delete-btn{
+/* padding 6px 0 + touch-action: manipulation — удобнее для тапа и без 300ms-задержки */
+.hi-edit-btn, .hi-share-btn, .hi-delete-btn, .hi-save-btn{
   background:none;
   border:none;
   color:var(--steel);
   font-size:11.5px;
-  padding:0;
+  padding:6px 0;
   cursor:pointer;
   font-family:'Inter',sans-serif;
+  touch-action: manipulation;
 }
 .hi-share-btn{color:var(--rust);}
 .hi-delete-btn{color:var(--rust);}
 .hi-delete-btn.confirming{color:#fff;background:var(--rust);padding:2px 6px;border-radius:5px;}
+.hi-save-btn{
+  background:var(--steel);
+  color:#fff;
+  border-radius:7px;
+  padding:6px 10px;
+  font-size:12px;
+}
 .hi-edit-form{
   display:none;
   align-items:center;
@@ -631,16 +648,6 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   padding:6px 8px;
   font-family:'Inter',sans-serif;
   font-size:13px;
-}
-.hi-edit-form button{
-  background:var(--steel);
-  color:#fff;
-  border:none;
-  border-radius:7px;
-  padding:6px 10px;
-  font-size:12px;
-  cursor:pointer;
-  font-family:'Inter',sans-serif;
 }
 .empty{
   color:var(--muted);
@@ -830,41 +837,44 @@ function ensureStoreDefaults(s){
   if(!s.lastByDay) s.lastByDay = {};
   if(!s.records) s.records = {};
   if(!s.bodyweightLog) s.bodyweightLog = [];
-  if(!s.updatedAt) s.updatedAt = 0; // untimestamped/legacy data always loses to anything timestamped
+  if(!s.updatedAt) s.updatedAt = 0;
   if(!s.program){
-    // Genuinely fresh store: seed the default 3-day program.
     s.program = cloneDefaultProgram();
     s.dayOrder = DEFAULT_PROGRAM.map(d=>d.id);
   }
   if(!s.dayOrder || !s.dayOrder.length){
-    // Older store that has a program but no explicit order yet (pre-dayOrder migration).
-    // Never re-add day1/2/3 here — a missing default day means the user deleted it.
     s.dayOrder = Object.keys(s.program);
   }
-  // Defensive: drop any dayOrder entries that no longer exist in program (e.g. after a delete).
   s.dayOrder = s.dayOrder.filter(id => !!s.program[id]);
   if(!s.dayOrder.length){
-    // Only reached if program itself is somehow empty — recover rather than show a blank app.
     s.program = cloneDefaultProgram();
     s.dayOrder = DEFAULT_PROGRAM.map(d=>d.id);
   }
   return s;
 }
 
-// Two devices can each make real, independent edits between syncs (add an exercise on the
-// phone, log a workout on the computer) before either sees the other's update. Picking
-// "whichever store is newer" as a whole discards the other device's work outright — this
-// merges the two instead: unions program/days/exercises, sessions, records, and the
-// bodyweight log, so nothing either device added gets silently lost. Scalar settings (like
-// the bodyweight number itself) come from whichever side is more recently touched overall.
+// Единый формат ключа сессии. Используется и в mergeStores, и в истории.
+// Меняет формат = ломает совместимость со старыми надгробиями deletedSessions.
+function sessionKeyOf(s){
+  return s.dayId + '__' + s.date;
+}
+function findSessionIndexByKey(key){
+  for(let i=0; i<store.sessions.length; i++){
+    if(sessionKeyOf(store.sessions[i]) === key) return i;
+  }
+  return -1;
+}
+
+// Two devices can each make real, independent edits between syncs. Picking "whichever
+// store is newer" as a whole discards the other device's work outright — this merges
+// the two instead: unions program/days/exercises, sessions, records, and the bodyweight
+// log, so nothing either device added gets silently lost. Scalar settings come from
+// whichever side is more recently touched overall.
 function mergeStores(a, b){
   const primary = (b.updatedAt || 0) >= (a.updatedAt || 0) ? b : a;
   const secondary = primary === b ? a : b;
   const merged = JSON.parse(JSON.stringify(primary));
 
-  // Merge the tombstones themselves first (union, keep the latest deletedAt per key) —
-  // everything below checks against this combined set, so a deletion recorded on EITHER
-  // side always wins over a stale copy still sitting on the other side.
   ['deletedDays','deletedExercises','deletedSessions'].forEach(field=>{
     if(!merged[field]) merged[field] = {};
     Object.keys(secondary[field] || {}).forEach(k=>{
@@ -873,7 +883,7 @@ function mergeStores(a, b){
   });
 
   Object.keys(secondary.program || {}).forEach(dayId=>{
-    if(merged.deletedDays[dayId]) return; // deleted on one side — never resurrect it
+    if(merged.deletedDays[dayId]) return;
     if(!merged.program[dayId]){
       merged.program[dayId] = secondary.program[dayId];
       if(!merged.dayOrder.includes(dayId)) merged.dayOrder.push(dayId);
@@ -886,7 +896,6 @@ function mergeStores(a, b){
       });
     }
   });
-  // Cleanup pass: if a tombstone applies to something primary itself still listed, drop it too.
   merged.dayOrder = merged.dayOrder.filter(id => !merged.deletedDays[id]);
   Object.keys(merged.program).forEach(dayId=>{
     if(merged.deletedDays[dayId]){ delete merged.program[dayId]; return; }
@@ -895,11 +904,10 @@ function mergeStores(a, b){
     );
   });
 
-  const sessionKey = s => s.dayId + '__' + s.date;
-  merged.sessions = merged.sessions.filter(s => !merged.deletedSessions[sessionKey(s)]);
-  const seenSessions = new Set(merged.sessions.map(sessionKey));
+  merged.sessions = merged.sessions.filter(s => !merged.deletedSessions[sessionKeyOf(s)]);
+  const seenSessions = new Set(merged.sessions.map(sessionKeyOf));
   (secondary.sessions || []).forEach(s=>{
-    const k = sessionKey(s);
+    const k = sessionKeyOf(s);
     if(merged.deletedSessions[k]) return;
     if(!seenSessions.has(k)){ merged.sessions.push(s); seenSessions.add(k); }
   });
@@ -916,9 +924,6 @@ function mergeStores(a, b){
   (secondary.bodyweightLog || []).forEach(e=>{
     if(!seenBwDates.has(e.date)){ merged.bodyweightLog.push(e); seenBwDates.add(e.date); }
   });
-
-  // lastByDay is just prefill convenience data, not a record of truth — the newer side's
-  // copy (already in `merged` via primary) is a perfectly fine choice, nothing to union here.
 
   merged.updatedAt = Date.now();
   return merged;
@@ -964,11 +969,6 @@ function cloudRemoveItem(key){
   });
 }
 
-// Returns {found:true, store} when cloud data was read successfully,
-// {found:false} when the cloud is genuinely empty (safe to seed it),
-// {error:true} when the read itself failed (network, parse, missing chunk —
-// never treat this the same as "empty", or a transient glitch could wipe good
-// cloud data with a stale local copy).
 let activeCloudPrefix = null;
 let lastCloudChunkCount = 0;
 
@@ -982,7 +982,7 @@ async function cloudLoadStore(){
   if(!metaRaw) return {found:false};
   try{
     const meta = JSON.parse(metaRaw);
-    const prefix = meta.prefix || CLOUD_CHUNK_PREFIX; // old saves before the double-buffer scheme
+    const prefix = meta.prefix || CLOUD_CHUNK_PREFIX;
     let json = '';
     for(let i=0; i<meta.count; i++){
       const part = await cloudGetItem(prefix + i);
@@ -998,11 +998,6 @@ async function cloudLoadStore(){
   }
 }
 
-// Double-buffered write: the brand-new, complete set of chunks is written under
-// whichever prefix ISN'T currently active, and only once every one of those writes
-// has succeeded does the single META key flip over to point at it. A crash or
-// dropped connection at any point before that flip leaves the OLD prefix — still
-// complete, still valid, still what META points to — entirely untouched.
 async function cloudSaveStore(s){
   if(!cloudAvailable()) return;
   const json = JSON.stringify(s);
@@ -1022,8 +1017,6 @@ async function cloudSaveStore(s){
   activeCloudPrefix = newPrefix;
   lastCloudChunkCount = chunks.length;
 
-  // Best-effort cleanup of the now-unreferenced old chunks. A failure here just
-  // leaves harmless leftovers — META no longer points at them either way.
   if(oldPrefix !== newPrefix){
     for(let i=0; i<oldCount; i++){
       cloudRemoveItem(oldPrefix + i).catch(()=>{});
@@ -1031,32 +1024,25 @@ async function cloudSaveStore(s){
   }
 }
 
-// Two overlapping cloudSaveStore() calls would both read activeCloudPrefix before either
-// had finished updating it, and both end up writing (and racing on) the same "new" prefix.
-// Everything funnels through this one chained promise so writes always run strictly one
-// after another, never concurrently.
 let cloudWriteChain = Promise.resolve();
 let cloudDebounceTimer = null;
 
 function enqueueCloudWrite(s){
   cloudWriteChain = cloudWriteChain.then(
     () => cloudSaveStore(s),
-    () => cloudSaveStore(s) // a prior failure shouldn't block all future attempts
+    () => cloudSaveStore(s)
   ).catch(()=>{
     showToast('Не удалось сохранить в облако — проверь связь, попробуем при следующем изменении', 3600);
   });
   return cloudWriteChain;
 }
 
-// For frequent UI-driven saves (+подход, ×, переименование...) — waits a beat so a burst
-// of quick actions becomes one cloud write instead of one per click.
 function queueCloudSave(s){
   if(!cloudAvailable()) return;
   clearTimeout(cloudDebounceTimer);
   cloudDebounceTimer = setTimeout(()=> enqueueCloudWrite(s), 600);
 }
 
-// For one-off startup/catch-up pushes where waiting serves no purpose.
 function cloudSaveNow(s){
   if(!cloudAvailable()) return Promise.resolve();
   clearTimeout(cloudDebounceTimer);
@@ -1074,11 +1060,7 @@ let activeTab = 'day1';
 let currentDate = todayStr();
 let dayEditMode = false;
 
-// Session-only cache of live, not-yet-saved form values per day, so switching tabs
-// (or triggering a re-render via any edit action) never silently discards typed input.
-// Structure matches store.lastByDay[dayId]: {exId: {setNum: {compKey: entry}}}.
 let drafts = {};
-// Which day's fields are actually sitting in the DOM right now (or null for history/add-day).
 let domDayId = null;
 
 function captureOutgoingDraft(){
@@ -1413,8 +1395,6 @@ function deleteSet(dayId, exId, setIndex){
   const ex = day.exercises.find(e=>e.id===exId);
   if(!ex || ex.sets <= 1){ showToast('Должен остаться хотя бы один подход'); return; }
 
-  // Capture whatever is live in the DOM right now (still under the OLD numbering)
-  // before anything shifts, so typed-but-unsaved values move with the reindex too.
   if(domDayId === dayId){
     try{ drafts[dayId] = collectDayData(dayId).data; }catch(e){ drafts[dayId] = drafts[dayId] || {}; }
   }
@@ -1425,8 +1405,6 @@ function deleteSet(dayId, exId, setIndex){
 
   ex.sets -= 1;
   saveStore(store);
-  // Renders read from the freshly-reindexed draft above — tell renderDay not to
-  // re-capture the (now stale, still-old-numbering) DOM over it.
   domDayId = null;
   renderDay(dayId);
 }
@@ -1504,9 +1482,6 @@ function saveRenameInline(dayId, exId, value, inputEl){
   const ex = day.exercises.find(e=>e.id===exId);
   if(!ex) return;
   if(!val){
-    // Revert just this input, in place — no full re-render, so a click on a
-    // neighbouring button (delete/add/done) that triggered this blur still lands
-    // on the same element instead of one that just got replaced underneath it.
     if(inputEl) inputEl.value = ex.name;
     showToast('Название не может быть пустым');
     return;
@@ -1514,9 +1489,6 @@ function saveRenameInline(dayId, exId, value, inputEl){
   if(val === ex.name) return;
   ex.name = val;
   saveStore(store);
-  // No renderDay() here on purpose — the input already shows the new text,
-  // nothing else on screen depends on the name, and re-rendering mid-blur is
-  // exactly what caused buttons next to it to eat a click.
 }
 window.saveRenameInline = saveRenameInline;
 
@@ -1736,6 +1708,9 @@ function saveCurrentDay(){
   }else{
     store.sessions.push(session);
   }
+  // Если запись раньше удаляли, надгробие должно исчезнуть — иначе следующий
+  // mergeStores снова выкинет только что сохранённую тренировку из истории.
+  delete store.deletedSessions[sessionKeyOf(session)];
   store.lastByDay[dayId] = data;
   saveStore(store);
 
@@ -2019,8 +1994,7 @@ async function shareResult({ blob, filename, text, title }){
       }
     }
   }catch(e){
-    if(e && e.name === 'AbortError') return; // user cancelled the share sheet on purpose — leave it at that
-    /* anything else (unsupported, real failure) — fall through to the next attempt */
+    if(e && e.name === 'AbortError') return;
   }
 
   try{
@@ -2030,7 +2004,6 @@ async function shareResult({ blob, filename, text, title }){
     }
   }catch(e){
     if(e && e.name === 'AbortError') return;
-    /* fall through to manual fallback */
   }
 
   if(blob){
@@ -2082,6 +2055,7 @@ function renderHistory(){
   sessions.forEach((s, idx)=>{
     const lines = sessionDetailLines(s);
     const detail = lines.map(l=>`<div><b>${escapeHTML(l.name)}:</b> ${escapeHTML(l.text)}</div>`).join('');
+    const k = escapeHTML(sessionKeyOf(s));
     html += `<div class="history-item">
       <div class="hi-top" onclick="toggleHistory(${idx})">
         <div>
@@ -2093,13 +2067,13 @@ function renderHistory(){
       <div class="hi-detail" id="hi-detail-${idx}">${detail || 'Нет данных'}</div>
       <div class="hi-editrow">
         <div class="hi-actions">
-          <button type="button" class="hi-edit-btn" id="editBtn-${idx}">изменить дату</button>
-          <button type="button" class="hi-share-btn" id="shareBtn-${idx}">поделиться</button>
-          <button type="button" class="hi-delete-btn" id="deleteSessionBtn-${idx}">удалить запись</button>
+          <button type="button" class="hi-edit-btn" data-hist-action="edit" data-key="${k}">изменить дату</button>
+          <button type="button" class="hi-share-btn" data-hist-action="share" data-key="${k}">поделиться</button>
+          <button type="button" class="hi-delete-btn" data-hist-action="delete" data-key="${k}">удалить запись</button>
         </div>
         <div class="hi-edit-form" id="editForm-${idx}">
           <input type="date" id="editDateInput-${idx}" value="${escapeHTML(s.date)}">
-          <button type="button" id="editSaveBtn-${idx}">Сохранить</button>
+          <button type="button" class="hi-save-btn" data-hist-action="save-date" data-key="${k}" data-input-id="editDateInput-${idx}">Сохранить</button>
         </div>
       </div>
     </div>`;
@@ -2108,82 +2082,96 @@ function renderHistory(){
   document.getElementById('progressSelect').onchange = (e)=> renderProgressChart(e.target.value);
   renderProgressChart(opts[0].value);
   wireShareChartBtn();
+}
 
-  sessions.forEach((s, idx)=>{
-    const btn = document.getElementById('editBtn-'+idx);
-    const form = document.getElementById('editForm-'+idx);
-    const input = document.getElementById('editDateInput-'+idx);
-    const saveBtn = document.getElementById('editSaveBtn-'+idx);
-    const shareBtn = document.getElementById('shareBtn-'+idx);
-    const deleteBtn = document.getElementById('deleteSessionBtn-'+idx);
-    if(btn){
-      btn.onclick = (e)=>{
-        e.stopPropagation();
-        form.classList.toggle('open');
-      };
-      saveBtn.onclick = (e)=>{
-        e.stopPropagation();
-        const newDate = input.value;
-        if(!newDate) return;
-        if(newDate === s.date) return;
-        const dup = store.sessions.find(x => x !== s && x.dayId === s.dayId && x.date === newDate);
-        if(dup){
-          showToast('На эту дату уже есть запись для этого дня', 3200);
-          return;
-        }
-        s.date = newDate;
+// Единый делегированный обработчик на mainEl. Ловит клики по кнопкам
+// истории через data-hist-action, находит актуальную сессию по стабильному
+// ключу `dayId__date` в текущем `store` (а не по ссылке — её может
+// заменить фоновая синхронизация), и выполняет действие.
+function handleHistoryClick(e){
+  const btn = e.target.closest('[data-hist-action]');
+  if(!btn || !mainEl.contains(btn)) return;
+  const action = btn.dataset.histAction;
+  const key = btn.dataset.key;
+  if(!key) return;
+  e.stopPropagation();
+
+  if(action === 'edit'){
+    const form = btn.closest('.hi-editrow').querySelector('.hi-edit-form');
+    if(form) form.classList.toggle('open');
+    return;
+  }
+
+  if(action === 'save-date'){
+    const inputEl = document.getElementById(btn.dataset.inputId);
+    if(!inputEl) return;
+    const newDate = inputEl.value;
+    if(!newDate) return;
+    const i = findSessionIndexByKey(key);
+    if(i === -1){ showToast('Запись не найдена — открой историю заново', 3200); renderHistory(); return; }
+    const live = store.sessions[i];
+    if(newDate === live.date) return;
+    if(store.sessions.some(x => x !== live && x.dayId === live.dayId && x.date === newDate)){
+      showToast('На эту дату уже есть запись для этого дня', 3200);
+      return;
+    }
+    const oldKey = sessionKeyOf(live);
+    live.date = newDate;
+    delete store.deletedSessions[oldKey];
+    saveStore(store);
+    showToast('Дата обновлена');
+    renderHistory();
+    return;
+  }
+
+  if(action === 'share'){
+    (async ()=>{
+      const i = findSessionIndexByKey(key);
+      if(i === -1){ showToast('Запись не найдена'); return; }
+      const live = store.sessions[i];
+      const original = btn.textContent;
+      btn.textContent = 'готовлю...';
+      try{
+        const blob = await buildWorkoutCardBlob(live);
+        const text = buildWorkoutSummaryText(live);
+        await shareResult({ blob, filename:`trenirovka-${live.date}.png`, text, title:`${live.dayLabel} — ${formatDate(live.date)}` });
+      }catch(err){
+        showToast('Не получилось подготовить — попробуй ещё раз');
+      }
+      if(btn.isConnected) btn.textContent = original;
+    })();
+    return;
+  }
+
+  if(action === 'delete'){
+    if(btn.dataset.confirming === '1'){
+      const i = findSessionIndexByKey(key);
+      if(i === -1){ showToast('Запись уже удалена'); renderHistory(); return; }
+      const removed = store.sessions[i];
+      store.sessions.splice(i, 1);
+      store.deletedSessions[key] = Date.now();
+      saveStore(store);
+      renderHistory();
+      showUndoToast('Запись удалена.', ()=>{
+        delete store.deletedSessions[key];
+        if(findSessionIndexByKey(key) === -1) store.sessions.push(removed);
         saveStore(store);
-        showToast('Дата обновлена');
         renderHistory();
-      };
+      });
+      return;
     }
-    if(deleteBtn){
-      deleteBtn.onclick = (e)=>{
-        e.stopPropagation();
-        if(deleteBtn.dataset.confirming === '1'){
-          const idx = store.sessions.indexOf(s);
-          if(idx === -1) return;
-          const key = s.dayId + '__' + s.date;
-          store.sessions.splice(idx, 1);
-          store.deletedSessions[key] = Date.now();
-          saveStore(store);
-          renderHistory();
-          showUndoToast('Запись удалена.', ()=>{
-            delete store.deletedSessions[key];
-            store.sessions.splice(idx, 0, s);
-            saveStore(store);
-            renderHistory();
-          });
-          return;
-        }
-        deleteBtn.dataset.confirming = '1';
-        deleteBtn.textContent = 'точно? ещё раз';
-        deleteBtn.classList.add('confirming');
-        setTimeout(()=>{
-          if(deleteBtn.dataset.confirming === '1'){
-            deleteBtn.dataset.confirming = '';
-            deleteBtn.textContent = 'удалить запись';
-            deleteBtn.classList.remove('confirming');
-          }
-        }, 7000);
-      };
-    }
-    if(shareBtn){
-      shareBtn.onclick = async (e)=>{
-        e.stopPropagation();
-        const original = shareBtn.textContent;
-        shareBtn.textContent = 'готовлю...';
-        try{
-          const blob = await buildWorkoutCardBlob(s);
-          const text = buildWorkoutSummaryText(s);
-          await shareResult({ blob, filename:`trenirovka-${s.date}.png`, text, title:`${s.dayLabel} — ${formatDate(s.date)}` });
-        }catch(err){
-          showToast('Не получилось подготовить — попробуй ещё раз');
-        }
-        shareBtn.textContent = original;
-      };
-    }
-  });
+    btn.dataset.confirming = '1';
+    btn.textContent = 'точно? ещё раз';
+    btn.classList.add('confirming');
+    setTimeout(()=>{
+      if(btn.isConnected && btn.dataset.confirming === '1'){
+        btn.dataset.confirming = '';
+        btn.textContent = 'удалить запись';
+        btn.classList.remove('confirming');
+      }
+    }, 7000);
+    return;
+  }
 }
 
 function wireShareChartBtn(){
@@ -2218,9 +2206,6 @@ function formatDate(str){
 
 function render(){
   if(activeTab !== 'history' && activeTab !== '__addday__' && !getDay(activeTab)){
-    // The remembered tab points at a day that no longer exists (deleted, or a stale
-    // reference from before a cloud sync) — fall back to the first real day instead
-    // of showing a dead "День не найден" screen.
     activeTab = store.dayOrder[0];
   }
   renderTabs();
@@ -2273,8 +2258,6 @@ async function syncWithCloud(isInitial){
   try{
     const result = await cloudLoadStore();
     if(result.error){
-      // Couldn't confirm what's in the cloud — do NOT push local over it, a
-      // transient glitch here should never be able to wipe good cloud data.
       syncStatusEl.className = 'sync-status off';
       syncStatusEl.innerHTML = '<span class="dot"></span>не удалось связаться с облаком — работаю локально';
     }else if(result.found){
@@ -2282,20 +2265,13 @@ async function syncWithCloud(isInitial){
       saveLocalStore(store);
       bwInput.value = currentBW();
       if(isInitial){
-        // Nothing has been typed into the page yet — safe to redraw immediately.
         domDayId = null;
         render();
       }
-      // On a later, background resync (app came back to the foreground) we deliberately
-      // do NOT force a re-render here: the merged data is already safe in `store` and
-      // local storage, and redrawing mid-typing risks either clobbering what's on screen
-      // or being masked by it via the draft mechanism. The next natural navigation
-      // (switching tabs) picks up the merged state cleanly on its own.
-      cloudSaveNow(store); // push the merged result back so both sides converge
+      cloudSaveNow(store);
       syncStatusEl.className = 'sync-status on';
       syncStatusEl.innerHTML = '<span class="dot"></span>Telegram Mini App — синхронизация включена';
     }else{
-      // Genuinely empty cloud (confirmed, not just "couldn't check") — safe to seed it.
       cloudSaveNow(store);
       syncStatusEl.className = 'sync-status on';
       syncStatusEl.innerHTML = '<span class="dot"></span>Telegram Mini App — синхронизация включена';
@@ -2308,13 +2284,11 @@ async function syncWithCloud(isInitial){
 async function init(){
   store = loadLocalStore();
   bwInput.value = currentBW();
+  mainEl.addEventListener('click', handleHistoryClick);
   render();
 
   await syncWithCloud(true);
 
-  // The Mini App's WebView often stays alive when you switch away and back (another
-  // device's save wouldn't otherwise show up until a full close+reopen) — re-check the
-  // cloud every time the app becomes visible/focused again, not just once at load.
   document.addEventListener('visibilitychange', ()=>{
     if(document.visibilityState === 'visible') syncWithCloud(false);
   });
