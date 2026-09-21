@@ -273,6 +273,10 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   align-items:center;
   justify-content:center;
 }
+.card.ex-collapsed{
+  cursor:pointer;
+}
+.card.ex-collapsed .ex-sub{margin-bottom:0;}
 
 .wm-screen{
   padding-bottom:20px;
@@ -287,9 +291,9 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   background:var(--card-2);
   border:1px solid var(--line);
   color:var(--text);
-  border-radius:8px;
-  padding:9px 12px;
-  font-size:12.5px;
+  border-radius:10px;
+  padding:11px 14px;
+  font-size:14px;
   cursor:pointer;
   font-family:'Inter',sans-serif;
 }
@@ -297,11 +301,11 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 .wm-dots{
   display:flex;
   gap:6px;
-  margin-bottom:14px;
+  margin-bottom:16px;
 }
 .wm-dot{
   flex:1;
-  height:5px;
+  height:6px;
   border-radius:3px;
   background:var(--line);
 }
@@ -310,7 +314,7 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 .wm-ex-name{
   font-family:'Oswald',sans-serif;
   font-weight:700;
-  font-size:21px;
+  font-size:27px;
   color:var(--text);
   text-transform:uppercase;
   line-height:1.2;
@@ -319,104 +323,141 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   color:var(--rust);
   font-family:'Oswald',sans-serif;
   font-weight:600;
-  font-size:15px;
-  margin:4px 0 18px;
+  font-size:19px;
+  margin:5px 0 20px;
 }
 .wm-card{
   background:var(--card);
   border:1px solid var(--line);
-  border-radius:14px;
-  padding:16px;
-  margin-bottom:16px;
+  border-radius:16px;
+  padding:20px 16px;
+  margin-bottom:18px;
 }
 .wm-comp-label{
-  font-size:14px;
+  font-size:17px;
   color:var(--text);
-  margin-bottom:10px;
+  margin-bottom:12px;
 }
-.wm-comp-label:not(:first-child){margin-top:18px;}
-.wm-target{color:var(--muted);font-size:12.5px;}
+.wm-comp-label:not(:first-child){margin-top:22px;}
+.wm-target{color:var(--muted);font-size:14px;}
 .wm-note{
-  font-size:14px;
+  font-size:17px;
   color:var(--text);
-  padding:6px 0;
+  padding:8px 0;
 }
-.wm-note-target{color:var(--muted);font-size:12.5px;}
+.wm-note-target{color:var(--muted);font-size:14px;}
 .wm-bw-toggle{
   display:flex;
   align-items:center;
-  gap:8px;
+  justify-content:center;
+  gap:10px;
   color:var(--steel);
-  border:1px solid var(--steel);
-  border-radius:20px;
-  padding:8px 14px;
-  font-size:14px;
-  margin-bottom:12px;
-  width:max-content;
+  border:2px solid var(--steel);
+  border-radius:24px;
+  padding:14px 18px;
+  font-size:17px;
+  font-weight:600;
+  margin-bottom:16px;
+  width:100%;
   cursor:pointer;
 }
-.wm-bw-toggle input{width:18px;height:18px;accent-color:var(--steel);}
+.wm-bw-toggle input{width:24px;height:24px;accent-color:var(--steel);}
 .wm-stepper-row{
   display:flex;
-  gap:10px;
-  flex-wrap:wrap;
+  flex-direction:column;
+  gap:14px;
 }
 .wm-stepper{
-  flex:1;
-  min-width:130px;
   background:var(--card-2);
-  border-radius:12px;
-  padding:10px;
+  border-radius:14px;
+  padding:14px;
 }
 .wm-stepper-label{
   color:var(--muted);
-  font-size:12.5px;
+  font-size:15px;
   text-align:center;
-  margin-bottom:8px;
+  margin-bottom:10px;
 }
 .wm-stepper-controls{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:10px;
+  gap:8px;
 }
 .wm-stepper-controls button{
-  width:44px;height:44px;
-  border-radius:10px;
+  width:56px;height:56px;
+  border-radius:14px;
   background:#2A2B30;
   border:1px solid var(--line);
   color:var(--text);
-  font-size:22px;
+  font-size:28px;
   cursor:pointer;
   flex-shrink:0;
 }
-.wm-num{
-  width:64px;
-  background:none;
-  border:none;
-  color:var(--text);
-  font-size:24px;
-  font-weight:600;
-  text-align:center;
-  font-family:'Inter',sans-serif;
+.wm-wheel-wrap{
+  position:relative;
+  height:76px;
+  flex:1;
+  min-width:0;
 }
-.wm-num:focus{outline:none;}
+.wm-wheel{
+  display:flex;
+  align-items:center;
+  height:76px;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.wm-wheel::-webkit-scrollbar{display:none;}
+.wm-wheel-cell{
+  flex:0 0 auto;
+  width:58px;
+  scroll-snap-align:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  color:var(--muted);
+  font-weight:500;
+}
+.wm-wheel::before, .wm-wheel::after{
+  content:'';
+  flex:0 0 auto;
+  width:calc(50% - 29px);
+}
+.wm-wheel-cell.wm-wheel-center{
+  font-size:36px;
+  color:var(--text);
+  font-weight:700;
+}
+.wm-wheel-center-marker{
+  position:absolute;
+  top:0; bottom:0;
+  left:50%;
+  width:60px;
+  margin-left:-30px;
+  border-left:2px solid var(--rust);
+  border-right:2px solid var(--rust);
+  border-radius:10px;
+  pointer-events:none;
+}
 .wm-done-btn{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:8px;
+  gap:10px;
   background:var(--card-2);
   border:2px solid var(--ok);
   color:var(--ok);
-  border-radius:14px;
-  padding:16px;
+  border-radius:16px;
+  padding:22px;
   font-family:'Oswald',sans-serif;
   font-weight:700;
-  font-size:15px;
+  font-size:18px;
   text-transform:uppercase;
   cursor:pointer;
-  margin-bottom:14px;
+  margin-bottom:16px;
 }
 .wm-done-btn.wm-done-checked{
   background:var(--ok);
@@ -431,9 +472,9 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   background:var(--card-2);
   border:1px solid var(--line);
   color:var(--text);
-  border-radius:12px;
-  padding:15px;
-  font-size:14px;
+  border-radius:14px;
+  padding:19px;
+  font-size:16px;
   cursor:pointer;
   font-family:'Inter',sans-serif;
 }
@@ -1261,6 +1302,14 @@ let dayEditMode = false;
 // Which exercise+set the single-set "workout mode" screen is showing, or null when the
 // normal day view is active. {dayId, exIndex, setIndex}
 let workoutMode = null;
+// Main day view shows only one exercise expanded at a time — {dayId: exId} of the one
+// currently open; defaults to the first exercise when a day has no entry here yet.
+let expandedExerciseByDay = {};
+function toggleExpandExercise(dayId, exId){
+  expandedExerciseByDay[dayId] = exId;
+  renderDay(dayId);
+}
+window.toggleExpandExercise = toggleExpandExercise;
 
 // Session-only cache of live, not-yet-saved form values per day, so switching tabs
 // (or triggering a re-render via any edit action) never silently discards typed input.
@@ -1370,6 +1419,8 @@ function toggleBW(name){
     extraWrap.style.display = 'none';
     manualWrap.style.display = 'flex';
   }
+  const visibleWrap = cb.checked ? extraWrap : manualWrap;
+  if(visibleWrap.querySelector('.wm-wheel')) wmInitWheels(visibleWrap);
 }
 window.toggleBW = toggleBW;
 
@@ -1527,14 +1578,41 @@ function wmPrevExercise(){
 window.wmPrevExercise = wmPrevExercise;
 
 function wmStep(name, kind, delta, min){
-  const el = document.querySelector(`[data-field="${name}"][data-kind="${kind}"]`);
+  const el = document.querySelector(`.wm-hidden-val[data-field="${name}"][data-kind="${kind}"]`);
   if(!el) return;
   const cur = el.value === '' ? 0 : Number(el.value);
   let next = Math.round((cur + delta) * 100) / 100;
   if(next < (min || 0)) next = (min || 0);
   el.value = next;
+  const wheel = document.querySelector(`.wm-wheel[data-target-name="${name}"][data-target-kind="${kind}"]`);
+  if(wheel){
+    const wmin = Number(wheel.dataset.min);
+    const wstep = Number(wheel.dataset.step);
+    const idx = Math.round((next - wmin) / wstep);
+    const cell = wheel.querySelector(`[data-index="${idx}"]`);
+    if(cell && cell.scrollIntoView) cell.scrollIntoView({inline:'center', block:'nearest'});
+  }
 }
 window.wmStep = wmStep;
+
+function wmWheelHTML(name, kind, min, max, step, current){
+  const decimals = step < 1 ? 1 : 0;
+  const count = Math.round((max - min) / step) + 1;
+  let cells = '';
+  for(let i=0; i<count; i++){
+    const v = min + i*step;
+    const vStr = decimals ? v.toFixed(1) : String(Math.round(v));
+    cells += `<div class="wm-wheel-cell" data-index="${i}">${vStr}</div>`;
+  }
+  const curNum = (current === '' || current == null) ? min : Number(current);
+  let curIndex = Math.round((curNum - min) / step);
+  if(curIndex < 0) curIndex = 0;
+  if(curIndex > count - 1) curIndex = count - 1;
+  return `<div class="wm-wheel-wrap">
+    <div class="wm-wheel-center-marker"></div>
+    <div class="wm-wheel" data-target-name="${name}" data-target-kind="${kind}" data-min="${min}" data-step="${step}" data-decimals="${decimals}" data-init-index="${curIndex}">${cells}</div>
+  </div>`;
+}
 
 function wmFieldHTML(exId, setIdx, comp, placeholder){
   const name = `${exId}__${setIdx}__${comp.key}`;
@@ -1556,17 +1634,19 @@ function wmFieldHTML(exId, setIdx, comp, placeholder){
         <div class="wm-stepper-label">+кг</div>
         <div class="wm-stepper-controls">
           <button type="button" onclick="wmStep('${name}','extra',-0.5)">−</button>
-          <input type="number" step="0.5" min="0" inputmode="decimal" class="wm-num" data-field="${name}" data-kind="extra" value="${extraVal}" placeholder="0">
+          ${wmWheelHTML(name, 'extra', 0, 50, 0.5, extraVal)}
           <button type="button" onclick="wmStep('${name}','extra',0.5)">+</button>
         </div>
+        <input type="hidden" class="wm-hidden-val" data-field="${name}" data-kind="extra" value="${extraVal}">
       </div>
       <div class="wm-stepper" id="manualWrap-${name}" style="display:${wasBW ? 'none' : 'flex'}">
         <div class="wm-stepper-label">кг</div>
         <div class="wm-stepper-controls">
           <button type="button" onclick="wmStep('${name}','weight',-0.5)">−</button>
-          <input type="number" step="0.5" min="0" inputmode="decimal" class="wm-num" data-field="${name}" data-kind="weight" value="${manualVal}" placeholder="—">
+          ${wmWheelHTML(name, 'weight', 0, 150, 0.5, manualVal)}
           <button type="button" onclick="wmStep('${name}','weight',0.5)">+</button>
         </div>
+        <input type="hidden" class="wm-hidden-val" data-field="${name}" data-kind="weight" value="${manualVal}">
       </div>`;
   }else{
     const weightVal = (placeholder && placeholder.weight != null) ? placeholder.weight : '';
@@ -1575,9 +1655,10 @@ function wmFieldHTML(exId, setIdx, comp, placeholder){
         <div class="wm-stepper-label">кг</div>
         <div class="wm-stepper-controls">
           <button type="button" onclick="wmStep('${name}','weight',-0.5)">−</button>
-          <input type="number" step="0.5" min="0" inputmode="decimal" class="wm-num" data-field="${name}" data-kind="weight" value="${weightVal}" placeholder="—">
+          ${wmWheelHTML(name, 'weight', 0, 150, 0.5, weightVal)}
           <button type="button" onclick="wmStep('${name}','weight',0.5)">+</button>
         </div>
+        <input type="hidden" class="wm-hidden-val" data-field="${name}" data-kind="weight" value="${weightVal}">
       </div>`;
   }
   const repsVal = (placeholder && placeholder.reps != null) ? placeholder.reps : '';
@@ -1586,15 +1667,57 @@ function wmFieldHTML(exId, setIdx, comp, placeholder){
       <div class="wm-stepper-label">повт</div>
       <div class="wm-stepper-controls">
         <button type="button" onclick="wmStep('${name}','reps',-1)">−</button>
-        <input type="number" min="0" inputmode="numeric" class="wm-num" data-field="${name}" data-kind="reps" value="${repsVal}" placeholder="—">
+        ${wmWheelHTML(name, 'reps', 0, 40, 1, repsVal)}
         <button type="button" onclick="wmStep('${name}','reps',1)">+</button>
       </div>
+      <input type="hidden" class="wm-hidden-val" data-field="${name}" data-kind="reps" value="${repsVal}">
     </div>`;
   return `
     <div class="wm-comp-label">${escapeHTML(comp.label || 'Результат')} <span class="wm-target">${escapeHTML(comp.target)}</span></div>
     ${bwToggleHTML}
     <div class="wm-stepper-row">${weightBlockHTML}${repsBlockHTML}</div>
   `;
+}
+
+function wmMarkWheelCenter(wheel){
+  if(typeof document.elementFromPoint !== 'function') return null;
+  const rect = wheel.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const el = document.elementFromPoint(cx, cy);
+  const cell = el ? el.closest('.wm-wheel-cell') : null;
+  wheel.querySelectorAll('.wm-wheel-cell').forEach(c => c.classList.remove('wm-wheel-center'));
+  if(cell) cell.classList.add('wm-wheel-center');
+  return cell;
+}
+
+function wmSyncHiddenFromWheel(wheel){
+  const cell = wmMarkWheelCenter(wheel);
+  if(!cell) return;
+  const idx = Number(cell.dataset.index);
+  const min = Number(wheel.dataset.min);
+  const step = Number(wheel.dataset.step);
+  const decimals = Number(wheel.dataset.decimals);
+  const v = min + idx * step;
+  const vStr = decimals ? v.toFixed(1) : String(Math.round(v));
+  const name = wheel.dataset.targetName;
+  const kind = wheel.dataset.targetKind;
+  const hidden = document.querySelector(`.wm-hidden-val[data-field="${name}"][data-kind="${kind}"]`);
+  if(hidden) hidden.value = vStr;
+}
+
+function wmInitWheels(container){
+  container.querySelectorAll('.wm-wheel').forEach(wheel=>{
+    const idx = Number(wheel.dataset.initIndex);
+    const cell = wheel.querySelector(`[data-index="${idx}"]`);
+    if(cell && cell.scrollIntoView) cell.scrollIntoView({inline:'center', block:'nearest'});
+    wmMarkWheelCenter(wheel);
+    let timer = null;
+    wheel.addEventListener('scroll', ()=>{
+      clearTimeout(timer);
+      timer = setTimeout(()=> wmSyncHiddenFromWheel(wheel), 120);
+    });
+  });
 }
 
 function renderWorkoutMode(){
@@ -1643,6 +1766,7 @@ function renderWorkoutMode(){
   `;
 
   mainEl.innerHTML = html;
+  wmInitWheels(mainEl);
   domDayId = dayId;
   saveBar.style.display = 'flex';
 }
@@ -1675,13 +1799,33 @@ function renderDay(dayId){
     const rec = primaryComp ? store.records[`${ex.id}__${primaryComp.key}`] : null;
     const prHtml = rec ? `<div class="pr-badge">🏆 Рекорд: ${rec.weight}×${rec.reps}</div>` : '';
 
+    const expandedId = expandedExerciseByDay[dayId];
+    const isExpanded = dayEditMode || (expandedId ? expandedId === ex.id : exIndex === 0);
+    let doneCount = 0;
+    for(let s=1; s<=ex.sets; s++){
+      const eff = getEffectiveSet(dayId, ex.id, s);
+      if(eff && eff.__done) doneCount++;
+    }
+
+    if(!isExpanded){
+      html += `<div class="card ex-collapsed" onclick="toggleExpandExercise('${dayId}','${ex.id}')">
+        <div class="ex-head">
+          <div class="ex-name">${escapeHTML(ex.name)}</div>
+          ${ex.tag ? `<div class="ex-tag">${escapeHTML(ex.tag)}</div>` : ''}
+          <button type="button" class="wm-start-btn" onclick="event.stopPropagation(); startWorkoutMode('${dayId}',${exIndex})" aria-label="Режим тренировки">▶</button>
+        </div>
+        <div class="ex-sub">${doneCount}/${ex.sets} подходов выполнено${prHtml ? ' · рекорд ' + rec.weight + '×' + rec.reps : ''}</div>
+      </div>`;
+      return;
+    }
+
     html += `<div class="card">
-      <div class="ex-head">
+      <div class="ex-head" ${!dayEditMode ? `onclick="toggleExpandExercise('${dayId}','${ex.id}')" style="cursor:pointer;"` : ''}>
         ${dayEditMode
           ? `<input type="text" class="ex-name-input" value="${escapeHTML(ex.name)}" onblur="saveRenameInline('${dayId}','${ex.id}', this.value, this)" onkeydown="if(event.key==='Enter') this.blur()">`
           : `<div class="ex-name">${escapeHTML(ex.name)}</div>`}
         ${ex.tag ? `<div class="ex-tag">${escapeHTML(ex.tag)}</div>` : ''}
-        ${!dayEditMode ? `<button type="button" class="wm-start-btn" onclick="startWorkoutMode('${dayId}',${exIndex})" aria-label="Режим тренировки">▶</button>` : ''}
+        ${!dayEditMode ? `<button type="button" class="wm-start-btn" onclick="event.stopPropagation(); startWorkoutMode('${dayId}',${exIndex})" aria-label="Режим тренировки">▶</button>` : ''}
         ${dayEditMode ? `<button type="button" class="ex-delete-btn" onclick="requestDeleteExercise('${dayId}','${ex.id}', this)">Удалить</button>` : ''}
       </div>
       <div class="ex-sub">${ex.sets} подход${ex.sets===1?'':(ex.sets<5?'а':'ов')} · целевой диапазон см. ниже</div>
@@ -1879,6 +2023,7 @@ function deleteExercise(dayId, exId){
   const day = getDay(dayId);
   day.exercises = day.exercises.filter(e=>e.id!==exId);
   store.deletedExercises[dayId+'::'+exId] = Date.now();
+  if(expandedExerciseByDay[dayId] === exId) expandedExerciseByDay[dayId] = null;
   saveStore(store);
   showToast('Упражнение удалено из программы');
   renderDay(dayId);
