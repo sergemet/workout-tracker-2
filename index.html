@@ -259,6 +259,191 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   font-size:11.5px;
   margin-bottom:10px;
 }
+.wm-start-btn{
+  background:var(--card-2);
+  border:1px solid var(--rust-dim);
+  color:var(--rust);
+  width:30px;height:30px;
+  border-radius:50%;
+  font-size:12px;
+  cursor:pointer;
+  flex-shrink:0;
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.wm-screen{
+  padding-bottom:20px;
+}
+.wm-topbar{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:16px;
+}
+.wm-exit-btn{
+  background:var(--card-2);
+  border:1px solid var(--line);
+  color:var(--text);
+  border-radius:8px;
+  padding:9px 12px;
+  font-size:12.5px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+}
+.wm-exit-btn:disabled{opacity:.35;}
+.wm-dots{
+  display:flex;
+  gap:6px;
+  margin-bottom:14px;
+}
+.wm-dot{
+  flex:1;
+  height:5px;
+  border-radius:3px;
+  background:var(--line);
+}
+.wm-dot-done{background:var(--ok);}
+.wm-dot-current{background:var(--rust);}
+.wm-ex-name{
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:21px;
+  color:var(--text);
+  text-transform:uppercase;
+  line-height:1.2;
+}
+.wm-set-label{
+  color:var(--rust);
+  font-family:'Oswald',sans-serif;
+  font-weight:600;
+  font-size:15px;
+  margin:4px 0 18px;
+}
+.wm-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:16px;
+}
+.wm-comp-label{
+  font-size:14px;
+  color:var(--text);
+  margin-bottom:10px;
+}
+.wm-comp-label:not(:first-child){margin-top:18px;}
+.wm-target{color:var(--muted);font-size:12.5px;}
+.wm-note{
+  font-size:14px;
+  color:var(--text);
+  padding:6px 0;
+}
+.wm-note-target{color:var(--muted);font-size:12.5px;}
+.wm-bw-toggle{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:var(--steel);
+  border:1px solid var(--steel);
+  border-radius:20px;
+  padding:8px 14px;
+  font-size:14px;
+  margin-bottom:12px;
+  width:max-content;
+  cursor:pointer;
+}
+.wm-bw-toggle input{width:18px;height:18px;accent-color:var(--steel);}
+.wm-stepper-row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.wm-stepper{
+  flex:1;
+  min-width:130px;
+  background:var(--card-2);
+  border-radius:12px;
+  padding:10px;
+}
+.wm-stepper-label{
+  color:var(--muted);
+  font-size:12.5px;
+  text-align:center;
+  margin-bottom:8px;
+}
+.wm-stepper-controls{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+.wm-stepper-controls button{
+  width:44px;height:44px;
+  border-radius:10px;
+  background:#2A2B30;
+  border:1px solid var(--line);
+  color:var(--text);
+  font-size:22px;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.wm-num{
+  width:64px;
+  background:none;
+  border:none;
+  color:var(--text);
+  font-size:24px;
+  font-weight:600;
+  text-align:center;
+  font-family:'Inter',sans-serif;
+}
+.wm-num:focus{outline:none;}
+.wm-done-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  background:var(--card-2);
+  border:2px solid var(--ok);
+  color:var(--ok);
+  border-radius:14px;
+  padding:16px;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:15px;
+  text-transform:uppercase;
+  cursor:pointer;
+  margin-bottom:14px;
+}
+.wm-done-btn.wm-done-checked{
+  background:var(--ok);
+  color:#0c2f0f;
+}
+.wm-nav-row{
+  display:flex;
+  gap:10px;
+}
+.wm-nav-btn{
+  flex:1;
+  background:var(--card-2);
+  border:1px solid var(--line);
+  color:var(--text);
+  border-radius:12px;
+  padding:15px;
+  font-size:14px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+}
+.wm-nav-btn:disabled{opacity:.35;}
+.wm-nav-primary{
+  background:var(--rust);
+  border-color:var(--rust);
+  color:#fff;
+  font-weight:600;
+}
 
 .round{
   border-top:1px solid var(--line);
@@ -529,9 +714,6 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 }
 .save-bar button.share-day-btn:active{background:#33353b;}
 
-/* Тосты: opacity:0 не убирает элемент из hit-testing — невидимая кнопка «Отменить»
-   продолжала перехватывать тапы внизу по центру. visibility:hidden это лечит,
-   а transition на visibility даёт элементу плавно исчезнуть в конце фейда. */
 .toast{
   position:fixed;
   bottom:78px;
@@ -545,16 +727,11 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   font-size:13px;
   max-width:90%;
   opacity:0;
-  visibility:hidden;
-  transition:opacity .25s, transform .25s, visibility .25s;
+  transition:opacity .25s, transform .25s;
   pointer-events:none;
   text-align:center;
 }
-.toast.show{
-  opacity:1;
-  visibility:visible;
-  transform:translateX(-50%) translateY(0);
-}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast-undo-btn{
   background:none;
   border:none;
@@ -612,27 +789,18 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   display:flex;
   gap:16px;
 }
-/* padding 6px 0 + touch-action: manipulation — удобнее для тапа и без 300ms-задержки */
-.hi-edit-btn, .hi-share-btn, .hi-delete-btn, .hi-save-btn{
+.hi-edit-btn, .hi-share-btn, .hi-delete-btn{
   background:none;
   border:none;
   color:var(--steel);
   font-size:11.5px;
-  padding:6px 0;
+  padding:0;
   cursor:pointer;
   font-family:'Inter',sans-serif;
-  touch-action: manipulation;
 }
 .hi-share-btn{color:var(--rust);}
 .hi-delete-btn{color:var(--rust);}
 .hi-delete-btn.confirming{color:#fff;background:var(--rust);padding:2px 6px;border-radius:5px;}
-.hi-save-btn{
-  background:var(--steel);
-  color:#fff;
-  border-radius:7px;
-  padding:6px 10px;
-  font-size:12px;
-}
 .hi-edit-form{
   display:none;
   align-items:center;
@@ -648,6 +816,16 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   padding:6px 8px;
   font-family:'Inter',sans-serif;
   font-size:13px;
+}
+.hi-edit-form button{
+  background:var(--steel);
+  color:#fff;
+  border:none;
+  border-radius:7px;
+  padding:6px 10px;
+  font-size:12px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
 }
 .empty{
   color:var(--muted);
@@ -837,44 +1015,41 @@ function ensureStoreDefaults(s){
   if(!s.lastByDay) s.lastByDay = {};
   if(!s.records) s.records = {};
   if(!s.bodyweightLog) s.bodyweightLog = [];
-  if(!s.updatedAt) s.updatedAt = 0;
+  if(!s.updatedAt) s.updatedAt = 0; // untimestamped/legacy data always loses to anything timestamped
   if(!s.program){
+    // Genuinely fresh store: seed the default 3-day program.
     s.program = cloneDefaultProgram();
     s.dayOrder = DEFAULT_PROGRAM.map(d=>d.id);
   }
   if(!s.dayOrder || !s.dayOrder.length){
+    // Older store that has a program but no explicit order yet (pre-dayOrder migration).
+    // Never re-add day1/2/3 here — a missing default day means the user deleted it.
     s.dayOrder = Object.keys(s.program);
   }
+  // Defensive: drop any dayOrder entries that no longer exist in program (e.g. after a delete).
   s.dayOrder = s.dayOrder.filter(id => !!s.program[id]);
   if(!s.dayOrder.length){
+    // Only reached if program itself is somehow empty — recover rather than show a blank app.
     s.program = cloneDefaultProgram();
     s.dayOrder = DEFAULT_PROGRAM.map(d=>d.id);
   }
   return s;
 }
 
-// Единый формат ключа сессии. Используется и в mergeStores, и в истории.
-// Меняет формат = ломает совместимость со старыми надгробиями deletedSessions.
-function sessionKeyOf(s){
-  return s.dayId + '__' + s.date;
-}
-function findSessionIndexByKey(key){
-  for(let i=0; i<store.sessions.length; i++){
-    if(sessionKeyOf(store.sessions[i]) === key) return i;
-  }
-  return -1;
-}
-
-// Two devices can each make real, independent edits between syncs. Picking "whichever
-// store is newer" as a whole discards the other device's work outright — this merges
-// the two instead: unions program/days/exercises, sessions, records, and the bodyweight
-// log, so nothing either device added gets silently lost. Scalar settings come from
-// whichever side is more recently touched overall.
+// Two devices can each make real, independent edits between syncs (add an exercise on the
+// phone, log a workout on the computer) before either sees the other's update. Picking
+// "whichever store is newer" as a whole discards the other device's work outright — this
+// merges the two instead: unions program/days/exercises, sessions, records, and the
+// bodyweight log, so nothing either device added gets silently lost. Scalar settings (like
+// the bodyweight number itself) come from whichever side is more recently touched overall.
 function mergeStores(a, b){
   const primary = (b.updatedAt || 0) >= (a.updatedAt || 0) ? b : a;
   const secondary = primary === b ? a : b;
   const merged = JSON.parse(JSON.stringify(primary));
 
+  // Merge the tombstones themselves first (union, keep the latest deletedAt per key) —
+  // everything below checks against this combined set, so a deletion recorded on EITHER
+  // side always wins over a stale copy still sitting on the other side.
   ['deletedDays','deletedExercises','deletedSessions'].forEach(field=>{
     if(!merged[field]) merged[field] = {};
     Object.keys(secondary[field] || {}).forEach(k=>{
@@ -883,7 +1058,7 @@ function mergeStores(a, b){
   });
 
   Object.keys(secondary.program || {}).forEach(dayId=>{
-    if(merged.deletedDays[dayId]) return;
+    if(merged.deletedDays[dayId]) return; // deleted on one side — never resurrect it
     if(!merged.program[dayId]){
       merged.program[dayId] = secondary.program[dayId];
       if(!merged.dayOrder.includes(dayId)) merged.dayOrder.push(dayId);
@@ -896,6 +1071,7 @@ function mergeStores(a, b){
       });
     }
   });
+  // Cleanup pass: if a tombstone applies to something primary itself still listed, drop it too.
   merged.dayOrder = merged.dayOrder.filter(id => !merged.deletedDays[id]);
   Object.keys(merged.program).forEach(dayId=>{
     if(merged.deletedDays[dayId]){ delete merged.program[dayId]; return; }
@@ -904,10 +1080,11 @@ function mergeStores(a, b){
     );
   });
 
-  merged.sessions = merged.sessions.filter(s => !merged.deletedSessions[sessionKeyOf(s)]);
-  const seenSessions = new Set(merged.sessions.map(sessionKeyOf));
+  const sessionKey = s => s.dayId + '__' + s.date;
+  merged.sessions = merged.sessions.filter(s => !merged.deletedSessions[sessionKey(s)]);
+  const seenSessions = new Set(merged.sessions.map(sessionKey));
   (secondary.sessions || []).forEach(s=>{
-    const k = sessionKeyOf(s);
+    const k = sessionKey(s);
     if(merged.deletedSessions[k]) return;
     if(!seenSessions.has(k)){ merged.sessions.push(s); seenSessions.add(k); }
   });
@@ -924,6 +1101,9 @@ function mergeStores(a, b){
   (secondary.bodyweightLog || []).forEach(e=>{
     if(!seenBwDates.has(e.date)){ merged.bodyweightLog.push(e); seenBwDates.add(e.date); }
   });
+
+  // lastByDay is just prefill convenience data, not a record of truth — the newer side's
+  // copy (already in `merged` via primary) is a perfectly fine choice, nothing to union here.
 
   merged.updatedAt = Date.now();
   return merged;
@@ -969,6 +1149,11 @@ function cloudRemoveItem(key){
   });
 }
 
+// Returns {found:true, store} when cloud data was read successfully,
+// {found:false} when the cloud is genuinely empty (safe to seed it),
+// {error:true} when the read itself failed (network, parse, missing chunk —
+// never treat this the same as "empty", or a transient glitch could wipe good
+// cloud data with a stale local copy).
 let activeCloudPrefix = null;
 let lastCloudChunkCount = 0;
 
@@ -982,7 +1167,7 @@ async function cloudLoadStore(){
   if(!metaRaw) return {found:false};
   try{
     const meta = JSON.parse(metaRaw);
-    const prefix = meta.prefix || CLOUD_CHUNK_PREFIX;
+    const prefix = meta.prefix || CLOUD_CHUNK_PREFIX; // old saves before the double-buffer scheme
     let json = '';
     for(let i=0; i<meta.count; i++){
       const part = await cloudGetItem(prefix + i);
@@ -998,6 +1183,11 @@ async function cloudLoadStore(){
   }
 }
 
+// Double-buffered write: the brand-new, complete set of chunks is written under
+// whichever prefix ISN'T currently active, and only once every one of those writes
+// has succeeded does the single META key flip over to point at it. A crash or
+// dropped connection at any point before that flip leaves the OLD prefix — still
+// complete, still valid, still what META points to — entirely untouched.
 async function cloudSaveStore(s){
   if(!cloudAvailable()) return;
   const json = JSON.stringify(s);
@@ -1017,6 +1207,8 @@ async function cloudSaveStore(s){
   activeCloudPrefix = newPrefix;
   lastCloudChunkCount = chunks.length;
 
+  // Best-effort cleanup of the now-unreferenced old chunks. A failure here just
+  // leaves harmless leftovers — META no longer points at them either way.
   if(oldPrefix !== newPrefix){
     for(let i=0; i<oldCount; i++){
       cloudRemoveItem(oldPrefix + i).catch(()=>{});
@@ -1024,25 +1216,32 @@ async function cloudSaveStore(s){
   }
 }
 
+// Two overlapping cloudSaveStore() calls would both read activeCloudPrefix before either
+// had finished updating it, and both end up writing (and racing on) the same "new" prefix.
+// Everything funnels through this one chained promise so writes always run strictly one
+// after another, never concurrently.
 let cloudWriteChain = Promise.resolve();
 let cloudDebounceTimer = null;
 
 function enqueueCloudWrite(s){
   cloudWriteChain = cloudWriteChain.then(
     () => cloudSaveStore(s),
-    () => cloudSaveStore(s)
+    () => cloudSaveStore(s) // a prior failure shouldn't block all future attempts
   ).catch(()=>{
     showToast('Не удалось сохранить в облако — проверь связь, попробуем при следующем изменении', 3600);
   });
   return cloudWriteChain;
 }
 
+// For frequent UI-driven saves (+подход, ×, переименование...) — waits a beat so a burst
+// of quick actions becomes one cloud write instead of one per click.
 function queueCloudSave(s){
   if(!cloudAvailable()) return;
   clearTimeout(cloudDebounceTimer);
   cloudDebounceTimer = setTimeout(()=> enqueueCloudWrite(s), 600);
 }
 
+// For one-off startup/catch-up pushes where waiting serves no purpose.
 function cloudSaveNow(s){
   if(!cloudAvailable()) return Promise.resolve();
   clearTimeout(cloudDebounceTimer);
@@ -1059,8 +1258,15 @@ let store = defaultStore();
 let activeTab = 'day1';
 let currentDate = todayStr();
 let dayEditMode = false;
+// Which exercise+set the single-set "workout mode" screen is showing, or null when the
+// normal day view is active. {dayId, exIndex, setIndex}
+let workoutMode = null;
 
+// Session-only cache of live, not-yet-saved form values per day, so switching tabs
+// (or triggering a re-render via any edit action) never silently discards typed input.
+// Structure matches store.lastByDay[dayId]: {exId: {setNum: {compKey: entry}}}.
 let drafts = {};
+// Which day's fields are actually sitting in the DOM right now (or null for history/add-day).
 let domDayId = null;
 
 function captureOutgoingDraft(){
@@ -1114,7 +1320,7 @@ function renderTabs(){
     btn.textContent = it.label;
     if(it.id === activeTab) btn.classList.add('active');
     if(it.id === '__addday__') btn.classList.add('add-day-btn');
-    btn.onclick = () => { activeTab = it.id; dayEditMode = false; render(); };
+    btn.onclick = () => { activeTab = it.id; dayEditMode = false; workoutMode = null; render(); };
     tabsEl.appendChild(btn);
   });
 }
@@ -1259,6 +1465,188 @@ function addExerciseFormHTML(dayId){
   `;
 }
 
+function getEffectiveSet(dayId, exId, setNum){
+  const draftSet = drafts[dayId] && drafts[dayId][exId] && drafts[dayId][exId][setNum];
+  if(draftSet && Object.keys(draftSet).length) return draftSet;
+  return store.lastByDay[dayId] && store.lastByDay[dayId][exId] && store.lastByDay[dayId][exId][setNum];
+}
+
+function startWorkoutMode(dayId, exIndex){
+  const day = getDay(dayId);
+  const ex = day.exercises[exIndex];
+  if(!ex) return;
+  let setIndex = 1;
+  for(let s=1; s<=ex.sets; s++){
+    const eff = getEffectiveSet(dayId, ex.id, s);
+    if(!eff || !eff.__done){ setIndex = s; break; }
+    setIndex = s;
+  }
+  workoutMode = {dayId, exIndex, setIndex};
+  render();
+}
+window.startWorkoutMode = startWorkoutMode;
+
+function exitWorkoutMode(){
+  workoutMode = null;
+  renderDay(activeTab);
+}
+window.exitWorkoutMode = exitWorkoutMode;
+
+function wmGoToSet(delta){
+  if(!workoutMode) return;
+  const day = getDay(workoutMode.dayId);
+  const ex = day.exercises[workoutMode.exIndex];
+  const next = workoutMode.setIndex + delta;
+  if(next < 1){ wmPrevExercise(); return; }
+  if(next > ex.sets){ wmNextExercise(); return; }
+  workoutMode.setIndex = next;
+  render();
+}
+window.wmGoToSet = wmGoToSet;
+
+function wmNextExercise(){
+  if(!workoutMode) return;
+  const day = getDay(workoutMode.dayId);
+  if(workoutMode.exIndex >= day.exercises.length - 1){
+    exitWorkoutMode();
+    return;
+  }
+  workoutMode.exIndex += 1;
+  workoutMode.setIndex = 1;
+  render();
+}
+window.wmNextExercise = wmNextExercise;
+
+function wmPrevExercise(){
+  if(!workoutMode || workoutMode.exIndex <= 0) return;
+  workoutMode.exIndex -= 1;
+  const day = getDay(workoutMode.dayId);
+  workoutMode.setIndex = day.exercises[workoutMode.exIndex].sets;
+  render();
+}
+window.wmPrevExercise = wmPrevExercise;
+
+function wmStep(name, kind, delta, min){
+  const el = document.querySelector(`[data-field="${name}"][data-kind="${kind}"]`);
+  if(!el) return;
+  const cur = el.value === '' ? 0 : Number(el.value);
+  let next = Math.round((cur + delta) * 100) / 100;
+  if(next < (min || 0)) next = (min || 0);
+  el.value = next;
+}
+window.wmStep = wmStep;
+
+function wmFieldHTML(exId, setIdx, comp, placeholder){
+  const name = `${exId}__${setIdx}__${comp.key}`;
+  if(!comp.weight && !comp.bodyweightOption){
+    return `<div class="wm-note">${escapeHTML(comp.label || 'Результат')} <span class="wm-note-target">${escapeHTML(comp.target)}</span></div>`;
+  }
+  let bwToggleHTML = '';
+  let weightBlockHTML = '';
+  if(comp.bodyweightOption){
+    const wasBW = placeholder ? placeholder.bw !== false : true;
+    const extraVal = (wasBW && placeholder && placeholder.extra) ? placeholder.extra : '';
+    const manualVal = (!wasBW && placeholder && placeholder.weight != null) ? placeholder.weight : '';
+    bwToggleHTML = `<label class="wm-bw-toggle">
+      <input type="checkbox" data-bwtoggle="${name}" ${wasBW ? 'checked' : ''} onchange="toggleBW('${name}')">
+      свой вес
+    </label>`;
+    weightBlockHTML = `
+      <div class="wm-stepper" id="extraWrap-${name}" style="display:${wasBW ? 'flex' : 'none'}">
+        <div class="wm-stepper-label">+кг</div>
+        <div class="wm-stepper-controls">
+          <button type="button" onclick="wmStep('${name}','extra',-0.5)">−</button>
+          <input type="number" step="0.5" min="0" inputmode="decimal" class="wm-num" data-field="${name}" data-kind="extra" value="${extraVal}" placeholder="0">
+          <button type="button" onclick="wmStep('${name}','extra',0.5)">+</button>
+        </div>
+      </div>
+      <div class="wm-stepper" id="manualWrap-${name}" style="display:${wasBW ? 'none' : 'flex'}">
+        <div class="wm-stepper-label">кг</div>
+        <div class="wm-stepper-controls">
+          <button type="button" onclick="wmStep('${name}','weight',-0.5)">−</button>
+          <input type="number" step="0.5" min="0" inputmode="decimal" class="wm-num" data-field="${name}" data-kind="weight" value="${manualVal}" placeholder="—">
+          <button type="button" onclick="wmStep('${name}','weight',0.5)">+</button>
+        </div>
+      </div>`;
+  }else{
+    const weightVal = (placeholder && placeholder.weight != null) ? placeholder.weight : '';
+    weightBlockHTML = `
+      <div class="wm-stepper">
+        <div class="wm-stepper-label">кг</div>
+        <div class="wm-stepper-controls">
+          <button type="button" onclick="wmStep('${name}','weight',-0.5)">−</button>
+          <input type="number" step="0.5" min="0" inputmode="decimal" class="wm-num" data-field="${name}" data-kind="weight" value="${weightVal}" placeholder="—">
+          <button type="button" onclick="wmStep('${name}','weight',0.5)">+</button>
+        </div>
+      </div>`;
+  }
+  const repsVal = (placeholder && placeholder.reps != null) ? placeholder.reps : '';
+  const repsBlockHTML = `
+    <div class="wm-stepper">
+      <div class="wm-stepper-label">повт</div>
+      <div class="wm-stepper-controls">
+        <button type="button" onclick="wmStep('${name}','reps',-1)">−</button>
+        <input type="number" min="0" inputmode="numeric" class="wm-num" data-field="${name}" data-kind="reps" value="${repsVal}" placeholder="—">
+        <button type="button" onclick="wmStep('${name}','reps',1)">+</button>
+      </div>
+    </div>`;
+  return `
+    <div class="wm-comp-label">${escapeHTML(comp.label || 'Результат')} <span class="wm-target">${escapeHTML(comp.target)}</span></div>
+    ${bwToggleHTML}
+    <div class="wm-stepper-row">${weightBlockHTML}${repsBlockHTML}</div>
+  `;
+}
+
+function renderWorkoutMode(){
+  captureOutgoingDraft();
+  const {dayId, exIndex} = workoutMode;
+  const day = getDay(dayId);
+  if(!day || !day.exercises[exIndex]){ exitWorkoutMode(); return; }
+  const ex = day.exercises[exIndex];
+  const s = Math.min(Math.max(workoutMode.setIndex, 1), ex.sets);
+  workoutMode.setIndex = s;
+  const effectiveSet = getEffectiveSet(dayId, ex.id, s);
+  const doneChecked = effectiveSet && effectiveSet.__done ? 'checked' : '';
+  const isLastSet = s === ex.sets;
+  const isLastExercise = exIndex === day.exercises.length - 1;
+
+  let dots = '';
+  for(let i=1; i<=ex.sets; i++){
+    dots += `<div class="wm-dot ${i===s ? 'wm-dot-current' : ''} ${i<s ? 'wm-dot-done' : ''}"></div>`;
+  }
+
+  let compsHTML = '';
+  ex.components.forEach(comp=>{
+    const placeholder = effectiveSet ? effectiveSet[comp.key] : null;
+    compsHTML += wmFieldHTML(ex.id, s, comp, placeholder);
+  });
+
+  const html = `
+    <div class="wm-screen">
+      <div class="wm-topbar">
+        <button type="button" class="wm-exit-btn" onclick="exitWorkoutMode()">✕ К списку</button>
+        <button type="button" class="wm-exit-btn" onclick="wmPrevExercise()" ${exIndex===0?'disabled':''}>‹ Упражнение</button>
+      </div>
+      <div class="wm-dots">${dots}</div>
+      <div class="wm-ex-name">${escapeHTML(ex.name)}</div>
+      <div class="wm-set-label">Подход ${s} из ${ex.sets}</div>
+      <div class="wm-card">${compsHTML}</div>
+      <label class="wm-done-btn ${doneChecked ? 'wm-done-checked' : ''}">
+        <input type="checkbox" data-doneref="${ex.id}__${s}" ${doneChecked} style="display:none" onchange="this.closest('.wm-done-btn').classList.toggle('wm-done-checked', this.checked)">
+        <span>${doneChecked ? '✓ подход выполнен' : 'отметить подход выполненным'}</span>
+      </label>
+      <div class="wm-nav-row">
+        <button type="button" class="wm-nav-btn" onclick="wmGoToSet(-1)" ${s===1 && exIndex===0 ? 'disabled' : ''}>‹ Пред. подход</button>
+        <button type="button" class="wm-nav-btn wm-nav-primary" onclick="${isLastSet ? 'wmNextExercise()' : 'wmGoToSet(1)'}">${isLastSet ? (isLastExercise ? 'Готово ✓' : 'Дальше упражнение ›') : 'След. подход ›'}</button>
+      </div>
+    </div>
+  `;
+
+  mainEl.innerHTML = html;
+  domDayId = dayId;
+  saveBar.style.display = 'flex';
+}
+
 function renderDay(dayId){
   captureOutgoingDraft();
   const day = getDay(dayId);
@@ -1268,8 +1656,6 @@ function renderDay(dayId){
     saveBar.style.display = 'none';
     return;
   }
-  const draft = drafts[dayId] || {};
-  const last = (store.lastByDay[dayId]) || {};
 
   let html = `
     <div class="day-toolbar">
@@ -1284,7 +1670,7 @@ function renderDay(dayId){
     </div>` : ''}
   `;
 
-  day.exercises.forEach(ex=>{
+  day.exercises.forEach((ex, exIndex)=>{
     const primaryComp = ex.components.find(c=>c.weight && !c.time);
     const rec = primaryComp ? store.records[`${ex.id}__${primaryComp.key}`] : null;
     const prHtml = rec ? `<div class="pr-badge">🏆 Рекорд: ${rec.weight}×${rec.reps}</div>` : '';
@@ -1295,15 +1681,14 @@ function renderDay(dayId){
           ? `<input type="text" class="ex-name-input" value="${escapeHTML(ex.name)}" onblur="saveRenameInline('${dayId}','${ex.id}', this.value, this)" onkeydown="if(event.key==='Enter') this.blur()">`
           : `<div class="ex-name">${escapeHTML(ex.name)}</div>`}
         ${ex.tag ? `<div class="ex-tag">${escapeHTML(ex.tag)}</div>` : ''}
+        ${!dayEditMode ? `<button type="button" class="wm-start-btn" onclick="startWorkoutMode('${dayId}',${exIndex})" aria-label="Режим тренировки">▶</button>` : ''}
         ${dayEditMode ? `<button type="button" class="ex-delete-btn" onclick="requestDeleteExercise('${dayId}','${ex.id}', this)">Удалить</button>` : ''}
       </div>
       <div class="ex-sub">${ex.sets} подход${ex.sets===1?'':(ex.sets<5?'а':'ов')} · целевой диапазон см. ниже</div>
       ${prHtml}`;
 
     for(let s=1; s<=ex.sets; s++){
-      const lastSet = last[ex.id] && last[ex.id][s];
-      const draftSet = draft[ex.id] && draft[ex.id][s];
-      const effectiveSet = (draftSet && Object.keys(draftSet).length) ? draftSet : lastSet;
+      const effectiveSet = getEffectiveSet(dayId, ex.id, s);
       const showLabel = ex.components.length > 1 || ex.sets > 1;
       const doneChecked = effectiveSet && effectiveSet.__done ? 'checked' : '';
       const canDeleteSet = dayEditMode && ex.sets > 1;
@@ -1395,6 +1780,8 @@ function deleteSet(dayId, exId, setIndex){
   const ex = day.exercises.find(e=>e.id===exId);
   if(!ex || ex.sets <= 1){ showToast('Должен остаться хотя бы один подход'); return; }
 
+  // Capture whatever is live in the DOM right now (still under the OLD numbering)
+  // before anything shifts, so typed-but-unsaved values move with the reindex too.
   if(domDayId === dayId){
     try{ drafts[dayId] = collectDayData(dayId).data; }catch(e){ drafts[dayId] = drafts[dayId] || {}; }
   }
@@ -1405,6 +1792,8 @@ function deleteSet(dayId, exId, setIndex){
 
   ex.sets -= 1;
   saveStore(store);
+  // Renders read from the freshly-reindexed draft above — tell renderDay not to
+  // re-capture the (now stale, still-old-numbering) DOM over it.
   domDayId = null;
   renderDay(dayId);
 }
@@ -1416,15 +1805,9 @@ function requestDeleteExercise(dayId, exId, btn){
     return;
   }
   btn.dataset.confirming = '1';
+  btn.dataset.idleText = 'Удалить';
   btn.textContent = 'Точно? Ещё раз';
   btn.classList.add('confirming');
-  setTimeout(()=>{
-    if(btn.dataset.confirming === '1'){
-      btn.dataset.confirming = '';
-      btn.textContent = 'Удалить';
-      btn.classList.remove('confirming');
-    }
-  }, 7000);
 }
 window.requestDeleteExercise = requestDeleteExercise;
 
@@ -1435,15 +1818,9 @@ function requestDeleteDay(dayId, btn){
   }
   const day = getDay(dayId);
   btn.dataset.confirming = '1';
+  btn.dataset.idleText = `Удалить весь день «${day.label}»`;
   btn.textContent = 'Точно удалить весь день? Ещё раз';
   btn.classList.add('confirming');
-  setTimeout(()=>{
-    if(btn.dataset.confirming === '1'){
-      btn.dataset.confirming = '';
-      btn.textContent = `Удалить весь день «${day.label}»`;
-      btn.classList.remove('confirming');
-    }
-  }, 7000);
 }
 window.requestDeleteDay = requestDeleteDay;
 
@@ -1482,6 +1859,9 @@ function saveRenameInline(dayId, exId, value, inputEl){
   const ex = day.exercises.find(e=>e.id===exId);
   if(!ex) return;
   if(!val){
+    // Revert just this input, in place — no full re-render, so a click on a
+    // neighbouring button (delete/add/done) that triggered this blur still lands
+    // on the same element instead of one that just got replaced underneath it.
     if(inputEl) inputEl.value = ex.name;
     showToast('Название не может быть пустым');
     return;
@@ -1489,6 +1869,9 @@ function saveRenameInline(dayId, exId, value, inputEl){
   if(val === ex.name) return;
   ex.name = val;
   saveStore(store);
+  // No renderDay() here on purpose — the input already shows the new text,
+  // nothing else on screen depends on the name, and re-rendering mid-blur is
+  // exactly what caused buttons next to it to eat a click.
 }
 window.saveRenameInline = saveRenameInline;
 
@@ -1549,6 +1932,7 @@ function collectDayData(dayId){
   const day = getDay(dayId);
   if(!day) return {data:{}, hasAny:false};
   const bw = currentBW();
+  const dayDraft = drafts[dayId] || {};
   const data = {};
   let hasAny = false;
   day.exercises.forEach(ex=>{
@@ -1556,42 +1940,59 @@ function collectDayData(dayId){
     for(let s=1; s<=ex.sets; s++){
       const setData = {};
       let setHasAny = false;
+      // Workout mode only ever puts ONE set's fields in the DOM at a time — anything not
+      // currently on screen (every other set, or every other exercise) falls back to
+      // whatever was last captured into the draft cache while it WAS on screen, so
+      // "Сохранить тренировку" still sees the whole day, not just the visible set.
+      const draftSetData = dayDraft[ex.id] && dayDraft[ex.id][s];
       ex.components.forEach(comp=>{
         const entry = {};
         if(comp.bodyweightOption){
           const name = `${ex.id}__${s}__${comp.key}`;
           const cb = document.querySelector(`[data-bwtoggle="${name}"]`);
-          const isBW = cb ? cb.checked : true;
-          const rEl = document.querySelector(`[data-field="${name}"][data-kind="reps"]`);
-          const repsVal = (rEl && rEl.value !== '') ? Number(rEl.value) : null;
-          if(isBW){
-            const eEl = document.querySelector(`[data-field="${name}"][data-kind="extra"]`);
-            const extraVal = (eEl && eEl.value !== '') ? Number(eEl.value) : 0;
-            if(repsVal != null || extraVal){
-              entry.bw = true;
-              entry.extra = extraVal;
-              entry.weight = bw + extraVal;
-              if(repsVal != null) entry.reps = repsVal;
-              setHasAny = true;
+          if(cb){
+            const isBW = cb.checked;
+            const rEl = document.querySelector(`[data-field="${name}"][data-kind="reps"]`);
+            const repsVal = (rEl && rEl.value !== '') ? Number(rEl.value) : null;
+            if(isBW){
+              const eEl = document.querySelector(`[data-field="${name}"][data-kind="extra"]`);
+              const extraVal = (eEl && eEl.value !== '') ? Number(eEl.value) : 0;
+              if(repsVal != null || extraVal){
+                entry.bw = true;
+                entry.extra = extraVal;
+                entry.weight = bw + extraVal;
+                if(repsVal != null) entry.reps = repsVal;
+                setHasAny = true;
+              }
+            }else{
+              const wEl = document.querySelector(`[data-field="${name}"][data-kind="weight"]`);
+              const weightVal = (wEl && wEl.value !== '') ? Number(wEl.value) : null;
+              if(weightVal != null){ entry.weight = weightVal; entry.bw = false; setHasAny = true; }
+              if(repsVal != null){ entry.reps = repsVal; setHasAny = true; }
             }
-          }else{
-            const wEl = document.querySelector(`[data-field="${name}"][data-kind="weight"]`);
-            const weightVal = (wEl && wEl.value !== '') ? Number(wEl.value) : null;
-            if(weightVal != null){ entry.weight = weightVal; entry.bw = false; setHasAny = true; }
-            if(repsVal != null){ entry.reps = repsVal; setHasAny = true; }
+          }else if(draftSetData && draftSetData[comp.key]){
+            Object.assign(entry, draftSetData[comp.key]);
+            if(Object.keys(entry).length) setHasAny = true;
           }
         }else{
-          if(comp.weight){
-            const wEl = document.querySelector(`[data-field="${ex.id}__${s}__${comp.key}"][data-kind="weight"]`);
-            if(wEl && wEl.value !== ''){ entry.weight = Number(wEl.value); setHasAny = true; }
-          }
+          const wEl = comp.weight ? document.querySelector(`[data-field="${ex.id}__${s}__${comp.key}"][data-kind="weight"]`) : null;
           const rEl = document.querySelector(`[data-field="${ex.id}__${s}__${comp.key}"][data-kind="reps"]`);
-          if(rEl && rEl.value !== ''){ entry.reps = Number(rEl.value); setHasAny = true; }
+          if(wEl || rEl){
+            if(wEl && wEl.value !== ''){ entry.weight = Number(wEl.value); setHasAny = true; }
+            if(rEl && rEl.value !== ''){ entry.reps = Number(rEl.value); setHasAny = true; }
+          }else if(draftSetData && draftSetData[comp.key]){
+            Object.assign(entry, draftSetData[comp.key]);
+            if(Object.keys(entry).length) setHasAny = true;
+          }
         }
         if(Object.keys(entry).length) setData[comp.key] = entry;
       });
       const doneEl = document.querySelector(`[data-doneref="${ex.id}__${s}"]`);
-      if(doneEl && doneEl.checked){ setData.__done = true; setHasAny = true; }
+      if(doneEl){
+        if(doneEl.checked){ setData.__done = true; setHasAny = true; }
+      }else if(draftSetData && draftSetData.__done){
+        setData.__done = true; setHasAny = true;
+      }
       if(setHasAny){ data[ex.id][s] = setData; hasAny = true; }
     }
   });
@@ -1708,9 +2109,6 @@ function saveCurrentDay(){
   }else{
     store.sessions.push(session);
   }
-  // Если запись раньше удаляли, надгробие должно исчезнуть — иначе следующий
-  // mergeStores снова выкинет только что сохранённую тренировку из истории.
-  delete store.deletedSessions[sessionKeyOf(session)];
   store.lastByDay[dayId] = data;
   saveStore(store);
 
@@ -1994,7 +2392,8 @@ async function shareResult({ blob, filename, text, title }){
       }
     }
   }catch(e){
-    if(e && e.name === 'AbortError') return;
+    if(e && e.name === 'AbortError') return; // user cancelled the share sheet on purpose — leave it at that
+    /* anything else (unsupported, real failure) — fall through to the next attempt */
   }
 
   try{
@@ -2004,6 +2403,7 @@ async function shareResult({ blob, filename, text, title }){
     }
   }catch(e){
     if(e && e.name === 'AbortError') return;
+    /* fall through to manual fallback */
   }
 
   if(blob){
@@ -2026,6 +2426,13 @@ async function shareResult({ blob, filename, text, title }){
     }
   }catch(e){}
   showToast(blob ? 'Картинка сохранена — отправь её вручную' : 'Не получилось поделиться', 4200);
+}
+
+function sessionKeyOf(s){
+  return s.dayId + '__' + s.date;
+}
+function findSessionIndexByKey(key){
+  return store.sessions.findIndex(x => sessionKeyOf(x) === key);
 }
 
 function renderHistory(){
@@ -2055,7 +2462,6 @@ function renderHistory(){
   sessions.forEach((s, idx)=>{
     const lines = sessionDetailLines(s);
     const detail = lines.map(l=>`<div><b>${escapeHTML(l.name)}:</b> ${escapeHTML(l.text)}</div>`).join('');
-    const k = escapeHTML(sessionKeyOf(s));
     html += `<div class="history-item">
       <div class="hi-top" onclick="toggleHistory(${idx})">
         <div>
@@ -2067,13 +2473,13 @@ function renderHistory(){
       <div class="hi-detail" id="hi-detail-${idx}">${detail || 'Нет данных'}</div>
       <div class="hi-editrow">
         <div class="hi-actions">
-          <button type="button" class="hi-edit-btn" data-hist-action="edit" data-key="${k}">изменить дату</button>
-          <button type="button" class="hi-share-btn" data-hist-action="share" data-key="${k}">поделиться</button>
-          <button type="button" class="hi-delete-btn" data-hist-action="delete" data-key="${k}">удалить запись</button>
+          <button type="button" class="hi-edit-btn" id="editBtn-${idx}">изменить дату</button>
+          <button type="button" class="hi-share-btn" id="shareBtn-${idx}">поделиться</button>
+          <button type="button" class="hi-delete-btn" id="deleteSessionBtn-${idx}">удалить запись</button>
         </div>
         <div class="hi-edit-form" id="editForm-${idx}">
           <input type="date" id="editDateInput-${idx}" value="${escapeHTML(s.date)}">
-          <button type="button" class="hi-save-btn" data-hist-action="save-date" data-key="${k}" data-input-id="editDateInput-${idx}">Сохранить</button>
+          <button type="button" id="editSaveBtn-${idx}">Сохранить</button>
         </div>
       </div>
     </div>`;
@@ -2082,96 +2488,92 @@ function renderHistory(){
   document.getElementById('progressSelect').onchange = (e)=> renderProgressChart(e.target.value);
   renderProgressChart(opts[0].value);
   wireShareChartBtn();
-}
 
-// Единый делегированный обработчик на mainEl. Ловит клики по кнопкам
-// истории через data-hist-action, находит актуальную сессию по стабильному
-// ключу `dayId__date` в текущем `store` (а не по ссылке — её может
-// заменить фоновая синхронизация), и выполняет действие.
-function handleHistoryClick(e){
-  const btn = e.target.closest('[data-hist-action]');
-  if(!btn || !mainEl.contains(btn)) return;
-  const action = btn.dataset.histAction;
-  const key = btn.dataset.key;
-  if(!key) return;
-  e.stopPropagation();
-
-  if(action === 'edit'){
-    const form = btn.closest('.hi-editrow').querySelector('.hi-edit-form');
-    if(form) form.classList.toggle('open');
-    return;
-  }
-
-  if(action === 'save-date'){
-    const inputEl = document.getElementById(btn.dataset.inputId);
-    if(!inputEl) return;
-    const newDate = inputEl.value;
-    if(!newDate) return;
-    const i = findSessionIndexByKey(key);
-    if(i === -1){ showToast('Запись не найдена — открой историю заново', 3200); renderHistory(); return; }
-    const live = store.sessions[i];
-    if(newDate === live.date) return;
-    if(store.sessions.some(x => x !== live && x.dayId === live.dayId && x.date === newDate)){
-      showToast('На эту дату уже есть запись для этого дня', 3200);
-      return;
-    }
-    const oldKey = sessionKeyOf(live);
-    live.date = newDate;
-    delete store.deletedSessions[oldKey];
-    saveStore(store);
-    showToast('Дата обновлена');
-    renderHistory();
-    return;
-  }
-
-  if(action === 'share'){
-    (async ()=>{
-      const i = findSessionIndexByKey(key);
-      if(i === -1){ showToast('Запись не найдена'); return; }
-      const live = store.sessions[i];
-      const original = btn.textContent;
-      btn.textContent = 'готовлю...';
-      try{
-        const blob = await buildWorkoutCardBlob(live);
-        const text = buildWorkoutSummaryText(live);
-        await shareResult({ blob, filename:`trenirovka-${live.date}.png`, text, title:`${live.dayLabel} — ${formatDate(live.date)}` });
-      }catch(err){
-        showToast('Не получилось подготовить — попробуй ещё раз');
-      }
-      if(btn.isConnected) btn.textContent = original;
-    })();
-    return;
-  }
-
-  if(action === 'delete'){
-    if(btn.dataset.confirming === '1'){
-      const i = findSessionIndexByKey(key);
-      if(i === -1){ showToast('Запись уже удалена'); renderHistory(); return; }
-      const removed = store.sessions[i];
-      store.sessions.splice(i, 1);
-      store.deletedSessions[key] = Date.now();
-      saveStore(store);
-      renderHistory();
-      showUndoToast('Запись удалена.', ()=>{
-        delete store.deletedSessions[key];
-        if(findSessionIndexByKey(key) === -1) store.sessions.push(removed);
+  // Deliberately not holding onto the session objects `s` themselves in these closures:
+  // a background cloud resync (mergeStores) can replace `store` — and every object inside
+  // it — at any moment while History is just sitting open. A captured `s` would silently
+  // go stale, `indexOf` would return -1, and these buttons would quietly stop doing
+  // anything. Each handler instead remembers the session's stable dayId+date key and
+  // looks up whatever's actually at that key in the CURRENT store when clicked.
+  sessions.forEach((s, idx)=>{
+    const originalKey = sessionKeyOf(s);
+    const btn = document.getElementById('editBtn-'+idx);
+    const form = document.getElementById('editForm-'+idx);
+    const input = document.getElementById('editDateInput-'+idx);
+    const saveBtn = document.getElementById('editSaveBtn-'+idx);
+    const shareBtn = document.getElementById('shareBtn-'+idx);
+    const deleteBtn = document.getElementById('deleteSessionBtn-'+idx);
+    if(btn){
+      btn.onclick = (e)=>{
+        e.stopPropagation();
+        form.classList.toggle('open');
+      };
+      saveBtn.onclick = (e)=>{
+        e.stopPropagation();
+        const newDate = input.value;
+        if(!newDate) return;
+        const i = findSessionIndexByKey(originalKey);
+        if(i === -1){ showToast('Запись не найдена — открой историю заново', 3200); renderHistory(); return; }
+        const live = store.sessions[i];
+        if(newDate === live.date) return;
+        const dup = store.sessions.some(x => x !== live && x.dayId === live.dayId && x.date === newDate);
+        if(dup){
+          showToast('На эту дату уже есть запись для этого дня', 3200);
+          return;
+        }
+        const oldKey = sessionKeyOf(live);
+        live.date = newDate;
+        delete store.deletedSessions[oldKey];
         saveStore(store);
+        showToast('Дата обновлена');
         renderHistory();
-      });
-      return;
+      };
     }
-    btn.dataset.confirming = '1';
-    btn.textContent = 'точно? ещё раз';
-    btn.classList.add('confirming');
-    setTimeout(()=>{
-      if(btn.isConnected && btn.dataset.confirming === '1'){
-        btn.dataset.confirming = '';
-        btn.textContent = 'удалить запись';
-        btn.classList.remove('confirming');
-      }
-    }, 7000);
-    return;
-  }
+    if(deleteBtn){
+      deleteBtn.onclick = (e)=>{
+        e.stopPropagation();
+        if(deleteBtn.dataset.confirming === '1'){
+          const i = findSessionIndexByKey(originalKey);
+          if(i === -1){ showToast('Запись уже удалена'); renderHistory(); return; }
+          const removed = store.sessions[i];
+          const key = sessionKeyOf(removed);
+          store.sessions.splice(i, 1);
+          store.deletedSessions[key] = Date.now();
+          saveStore(store);
+          renderHistory();
+          showUndoToast('Запись удалена.', ()=>{
+            delete store.deletedSessions[key];
+            if(findSessionIndexByKey(key) === -1) store.sessions.push(removed);
+            saveStore(store);
+            renderHistory();
+          });
+          return;
+        }
+        deleteBtn.dataset.confirming = '1';
+        deleteBtn.dataset.idleText = 'удалить запись';
+        deleteBtn.textContent = 'точно? ещё раз';
+        deleteBtn.classList.add('confirming');
+      };
+    }
+    if(shareBtn){
+      shareBtn.onclick = async (e)=>{
+        e.stopPropagation();
+        const i = findSessionIndexByKey(originalKey);
+        if(i === -1){ showToast('Запись не найдена — открой историю заново', 3200); return; }
+        const live = store.sessions[i];
+        const original = shareBtn.textContent;
+        shareBtn.textContent = 'готовлю...';
+        try{
+          const blob = await buildWorkoutCardBlob(live);
+          const text = buildWorkoutSummaryText(live);
+          await shareResult({ blob, filename:`trenirovka-${live.date}.png`, text, title:`${live.dayLabel} — ${formatDate(live.date)}` });
+        }catch(err){
+          showToast('Не получилось подготовить — попробуй ещё раз');
+        }
+        shareBtn.textContent = original;
+      };
+    }
+  });
 }
 
 function wireShareChartBtn(){
@@ -2206,6 +2608,9 @@ function formatDate(str){
 
 function render(){
   if(activeTab !== 'history' && activeTab !== '__addday__' && !getDay(activeTab)){
+    // The remembered tab points at a day that no longer exists (deleted, or a stale
+    // reference from before a cloud sync) — fall back to the first real day instead
+    // of showing a dead "День не найден" screen.
     activeTab = store.dayOrder[0];
   }
   renderTabs();
@@ -2213,6 +2618,8 @@ function render(){
     renderHistory();
   }else if(activeTab === '__addday__'){
     renderAddDay();
+  }else if(workoutMode && workoutMode.dayId === activeTab){
+    renderWorkoutMode();
   }else{
     renderDay(activeTab);
   }
@@ -2258,6 +2665,8 @@ async function syncWithCloud(isInitial){
   try{
     const result = await cloudLoadStore();
     if(result.error){
+      // Couldn't confirm what's in the cloud — do NOT push local over it, a
+      // transient glitch here should never be able to wipe good cloud data.
       syncStatusEl.className = 'sync-status off';
       syncStatusEl.innerHTML = '<span class="dot"></span>не удалось связаться с облаком — работаю локально';
     }else if(result.found){
@@ -2265,13 +2674,20 @@ async function syncWithCloud(isInitial){
       saveLocalStore(store);
       bwInput.value = currentBW();
       if(isInitial){
+        // Nothing has been typed into the page yet — safe to redraw immediately.
         domDayId = null;
         render();
       }
-      cloudSaveNow(store);
+      // On a later, background resync (app came back to the foreground) we deliberately
+      // do NOT force a re-render here: the merged data is already safe in `store` and
+      // local storage, and redrawing mid-typing risks either clobbering what's on screen
+      // or being masked by it via the draft mechanism. The next natural navigation
+      // (switching tabs) picks up the merged state cleanly on its own.
+      cloudSaveNow(store); // push the merged result back so both sides converge
       syncStatusEl.className = 'sync-status on';
       syncStatusEl.innerHTML = '<span class="dot"></span>Telegram Mini App — синхронизация включена';
     }else{
+      // Genuinely empty cloud (confirmed, not just "couldn't check") — safe to seed it.
       cloudSaveNow(store);
       syncStatusEl.className = 'sync-status on';
       syncStatusEl.innerHTML = '<span class="dot"></span>Telegram Mini App — синхронизация включена';
@@ -2284,11 +2700,13 @@ async function syncWithCloud(isInitial){
 async function init(){
   store = loadLocalStore();
   bwInput.value = currentBW();
-  mainEl.addEventListener('click', handleHistoryClick);
   render();
 
   await syncWithCloud(true);
 
+  // The Mini App's WebView often stays alive when you switch away and back (another
+  // device's save wouldn't otherwise show up until a full close+reopen) — re-check the
+  // cloud every time the app becomes visible/focused again, not just once at load.
   document.addEventListener('visibilitychange', ()=>{
     if(document.visibilityState === 'visible') syncWithCloud(false);
   });
@@ -2296,6 +2714,18 @@ async function init(){
     syncWithCloud(false);
   });
 }
+
+// Any "точно? ещё раз"-style confirm button reverts as soon as you tap anywhere else on
+// the page — no timer, so there's no narrow window to miss on a slower phone tap.
+document.addEventListener('click', function(e){
+  document.querySelectorAll('[data-confirming="1"]').forEach(function(btn){
+    if(btn !== e.target){
+      btn.dataset.confirming = '';
+      if(btn.dataset.idleText) btn.textContent = btn.dataset.idleText;
+      btn.classList.remove('confirming');
+    }
+  });
+}, true);
 
 init();
 </script>
