@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -33,6 +32,9 @@ body{
   padding-bottom:90px;
   -webkit-tap-highlight-color:transparent;
 }
+body.wm-active{padding-bottom:0;}
+body.wm-active header, body.wm-active nav{display:none;}
+.bw-hidden{display:none !important;}
 
 header{
   padding:22px 18px 16px;
@@ -45,7 +47,7 @@ header h1{
   font-weight:700;
   font-size:24px;
   letter-spacing:0.3px;
-  margin:0 0 2px;
+  margin:0 0 10px;
   text-transform:uppercase;
 }
 header p{
@@ -143,27 +145,27 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   gap:10px;
 }
 .day-date label{
-  font-size:12px;
+  font-size:14px;
   color:var(--muted);
   display:block;
-  margin-bottom:4px;
+  margin-bottom:5px;
 }
 .day-date input[type="date"]{
   background:var(--card);
   border:1px solid var(--line);
   color:var(--text);
-  border-radius:8px;
-  padding:8px 10px;
+  border-radius:9px;
+  padding:10px 12px;
   font-family:'Inter',sans-serif;
-  font-size:14px;
+  font-size:16px;
 }
 .edit-toggle-btn{
   background:var(--card-2);
   border:1px solid var(--line);
   color:var(--text);
-  border-radius:8px;
-  padding:9px 12px;
-  font-size:12px;
+  border-radius:9px;
+  padding:12px 16px;
+  font-size:15px;
   cursor:pointer;
   font-family:'Inter',sans-serif;
   white-space:nowrap;
@@ -175,15 +177,45 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 }
 .day-delete-row{
   margin:-6px 0 14px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.wm-day-start-btn{
+  width:100%;
+  background:var(--rust);
+  color:#fff;
+  border:none;
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:16px;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:20px;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+}
+.wm-day-start-sub{
+  font-family:'Inter',sans-serif;
+  font-weight:400;
+  font-size:13px;
+  text-transform:none;
+  color:#fbd9c9;
+  letter-spacing:0;
 }
 .day-delete-btn{
   width:100%;
   background:none;
   border:1px dashed var(--rust-dim);
   color:var(--rust);
-  border-radius:8px;
-  padding:9px;
-  font-size:12px;
+  border-radius:9px;
+  padding:13px;
+  font-size:15px;
   cursor:pointer;
   font-family:'Inter',sans-serif;
 }
@@ -196,45 +228,45 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 .card{
   background:var(--card);
   border:1px solid var(--line);
-  border-radius:10px;
-  padding:14px 14px 10px;
-  margin-bottom:12px;
+  border-radius:12px;
+  padding:18px 16px 14px;
+  margin-bottom:14px;
 }
 .ex-head{
   display:flex;
-  align-items:baseline;
+  align-items:center;
   justify-content:space-between;
   gap:10px;
-  margin-bottom:2px;
+  margin-bottom:5px;
 }
 .ex-name{
   font-family:'Oswald',sans-serif;
   font-weight:600;
-  font-size:15.5px;
+  font-size:21px;
   line-height:1.25;
 }
 .ex-name-input{
   font-family:'Oswald',sans-serif;
   font-weight:600;
-  font-size:15.5px;
+  font-size:21px;
   line-height:1.25;
   background:var(--card-2);
   border:1px solid var(--rust-dim);
   color:var(--text);
-  border-radius:6px;
-  padding:4px 8px;
+  border-radius:7px;
+  padding:6px 10px;
   flex:1 1 auto;
   min-width:0;
 }
 .ex-name-input:focus{outline:none;border-color:var(--rust);}
 .ex-tag{
-  font-size:10.5px;
+  font-size:12.5px;
   font-weight:700;
   letter-spacing:0.5px;
   color:var(--rust);
   border:1px solid var(--rust-dim);
-  border-radius:5px;
-  padding:2px 6px;
+  border-radius:6px;
+  padding:3px 8px;
   white-space:nowrap;
   flex-shrink:0;
 }
@@ -242,7 +274,7 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   background:none;
   border:none;
   color:var(--rust);
-  font-size:11.5px;
+  font-size:15px;
   padding:0;
   cursor:pointer;
   font-family:'Inter',sans-serif;
@@ -251,27 +283,28 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 }
 .ex-sub{
   color:var(--muted);
-  font-size:12px;
-  margin-bottom:2px;
+  font-size:15px;
+  margin-bottom:4px;
 }
 .pr-badge{
   color:var(--warn);
-  font-size:11.5px;
-  margin-bottom:10px;
+  font-size:15px;
+  margin-bottom:12px;
 }
 .wm-start-btn{
   background:var(--card-2);
   border:1px solid var(--rust-dim);
   color:var(--rust);
-  width:30px;height:30px;
+  width:48px;height:48px;
   border-radius:50%;
-  font-size:12px;
+  font-size:17px;
   cursor:pointer;
   flex-shrink:0;
   margin-left:auto;
   display:flex;
   align-items:center;
   justify-content:center;
+  touch-action:manipulation;
 }
 .card.ex-collapsed{
   cursor:pointer;
@@ -314,7 +347,7 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 .wm-ex-name{
   font-family:'Oswald',sans-serif;
   font-weight:700;
-  font-size:27px;
+  font-size:31px;
   color:var(--text);
   text-transform:uppercase;
   line-height:1.2;
@@ -323,8 +356,8 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   color:var(--rust);
   font-family:'Oswald',sans-serif;
   font-weight:600;
-  font-size:19px;
-  margin:5px 0 20px;
+  font-size:22px;
+  margin:6px 0 20px;
 }
 .wm-card{
   background:var(--card);
@@ -385,62 +418,35 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   gap:8px;
 }
 .wm-stepper-controls button{
-  width:56px;height:56px;
-  border-radius:14px;
+  width:68px;height:68px;
+  border-radius:16px;
   background:#2A2B30;
   border:1px solid var(--line);
   color:var(--text);
-  font-size:28px;
+  font-size:34px;
   cursor:pointer;
   flex-shrink:0;
+  touch-action:manipulation;
+  user-select:none;
 }
-.wm-wheel-wrap{
-  position:relative;
-  height:76px;
+.wm-stepper-controls button:active{background:var(--rust-dim);}
+.wm-num{
   flex:1;
   min-width:0;
-}
-.wm-wheel{
-  display:flex;
-  align-items:center;
-  height:76px;
-  overflow-x:auto;
-  scroll-snap-type:x mandatory;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
-}
-.wm-wheel::-webkit-scrollbar{display:none;}
-.wm-wheel-cell{
-  flex:0 0 auto;
-  width:58px;
-  scroll-snap-align:center;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
-  color:var(--muted);
-  font-weight:500;
-}
-.wm-wheel::before, .wm-wheel::after{
-  content:'';
-  flex:0 0 auto;
-  width:calc(50% - 29px);
-}
-.wm-wheel-cell.wm-wheel-center{
-  font-size:36px;
+  background:none;
+  border:none;
   color:var(--text);
+  font-size:50px;
   font-weight:700;
+  text-align:center;
+  font-family:'Inter',sans-serif;
+  -moz-appearance:textfield;
 }
-.wm-wheel-center-marker{
-  position:absolute;
-  top:0; bottom:0;
-  left:50%;
-  width:60px;
-  margin-left:-30px;
-  border-left:2px solid var(--rust);
-  border-right:2px solid var(--rust);
-  border-radius:10px;
-  pointer-events:none;
+.wm-num:focus{outline:none;}
+.wm-num::-webkit-outer-spin-button,
+.wm-num::-webkit-inner-spin-button{
+  -webkit-appearance:none;
+  margin:0;
 }
 .wm-done-btn{
   display:flex;
@@ -451,13 +457,14 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   border:2px solid var(--ok);
   color:var(--ok);
   border-radius:16px;
-  padding:22px;
+  padding:24px;
   font-family:'Oswald',sans-serif;
   font-weight:700;
-  font-size:18px;
+  font-size:19px;
   text-transform:uppercase;
   cursor:pointer;
-  margin-bottom:16px;
+  margin-bottom:20px;
+  touch-action:manipulation;
 }
 .wm-done-btn.wm-done-checked{
   background:var(--ok);
@@ -473,10 +480,11 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   border:1px solid var(--line);
   color:var(--text);
   border-radius:14px;
-  padding:19px;
-  font-size:16px;
+  padding:22px;
+  font-size:17px;
   cursor:pointer;
   font-family:'Inter',sans-serif;
+  touch-action:manipulation;
 }
 .wm-nav-btn:disabled{opacity:.35;}
 .wm-nav-primary{
@@ -494,11 +502,11 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 .round-label-line{
   display:flex;
   align-items:center;
-  gap:8px;
-  margin-bottom:6px;
+  gap:10px;
+  margin-bottom:8px;
 }
 .round-label{
-  font-size:11.5px;
+  font-size:15px;
   color:var(--muted);
   font-weight:500;
 }
@@ -506,9 +514,9 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   background:none;
   border:1px solid var(--rust-dim);
   color:var(--rust);
-  width:18px;height:18px;
+  width:26px;height:26px;
   border-radius:50%;
-  font-size:12px;
+  font-size:15px;
   line-height:1;
   cursor:pointer;
   padding:0;
@@ -519,15 +527,15 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 .round-done-toggle{
   display:flex;
   align-items:center;
-  gap:6px;
-  font-size:12px;
+  gap:8px;
+  font-size:16px;
   color:var(--ok);
   cursor:pointer;
   user-select:none;
   margin-left:auto;
 }
 .round-done-toggle input{
-  width:15px;height:15px;
+  width:21px;height:21px;
   accent-color:var(--ok);
   margin:0;
 }
@@ -535,16 +543,16 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 .comp{
   display:flex;
   align-items:center;
-  gap:8px;
-  margin-bottom:6px;
+  gap:10px;
+  margin-bottom:9px;
   flex-wrap:wrap;
 }
 .comp:last-child{margin-bottom:0;}
 .comp-label{
-  font-size:12.5px;
+  font-size:16px;
   color:var(--text);
   flex:0 1 auto;
-  max-width:150px;
+  max-width:190px;
   min-width:0;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -552,7 +560,7 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 }
 .comp-target{
   color:var(--muted);
-  font-size:11px;
+  font-size:14px;
   flex-shrink:0;
 }
 .field{
@@ -560,52 +568,52 @@ main{padding:16px;max-width:640px;margin:0 auto;}
   align-items:center;
   background:var(--card-2);
   border:1px solid var(--line);
-  border-radius:7px;
+  border-radius:9px;
   overflow:hidden;
   flex-shrink:0;
 }
 .field input{
-  width:46px;
+  width:58px;
   background:none;
   border:none;
   color:var(--text);
-  font-size:14px;
-  padding:7px 4px;
+  font-size:19px;
+  padding:10px 4px;
   text-align:center;
   font-family:'Inter',sans-serif;
 }
 .field input:focus{outline:none;background:#33353b;}
 .field span{
-  font-size:10px;
+  font-size:13px;
   color:var(--muted);
-  padding-right:6px;
+  padding-right:8px;
 }
-.field.sep{border-left:1px solid var(--line);border-radius:0 7px 7px 0;}
-.field.first{border-radius:7px 0 0 7px;}
-.field.solo{border-radius:7px;}
+.field.sep{border-left:1px solid var(--line);border-radius:0 9px 9px 0;}
+.field.first{border-radius:9px 0 0 9px;}
+.field.solo{border-radius:9px;}
 
 .bw-group{
   display:flex;
   align-items:center;
-  gap:8px;
+  gap:10px;
   flex-shrink:0;
   flex-wrap:wrap;
 }
 .bw-toggle{
   display:flex;
   align-items:center;
-  gap:5px;
-  font-size:11px;
+  gap:7px;
+  font-size:15px;
   color:var(--steel);
   border:1px solid var(--steel);
-  border-radius:20px;
-  padding:5px 9px 5px 7px;
+  border-radius:22px;
+  padding:8px 13px 8px 10px;
   cursor:pointer;
   user-select:none;
   flex-shrink:0;
 }
 .bw-toggle input{
-  width:13px;height:13px;
+  width:19px;height:19px;
   accent-color:var(--steel);
   margin:0;
 }
@@ -928,7 +936,6 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 
 <header>
   <h1>Точка железа</h1>
-  <p>Программа от тренера · прогрессия и учёт по факту</p>
   <div class="bw-setting">
     <label>Твой вес</label>
     <input type="number" step="0.1" id="bwInput">
@@ -1377,6 +1384,7 @@ function renderTabs(){
 function renderAddDay(){
   captureOutgoingDraft();
   domDayId = null;
+  document.body.classList.remove('wm-active');
   saveBar.style.display = 'none';
   mainEl.innerHTML = `
     <div class="add-ex-form open" style="margin-top:16px;">
@@ -1413,14 +1421,12 @@ function toggleBW(name){
   const manualWrap = document.getElementById('manualWrap-'+name);
   if(!cb) return;
   if(cb.checked){
-    extraWrap.style.display = 'flex';
-    manualWrap.style.display = 'none';
+    extraWrap.classList.remove('bw-hidden');
+    manualWrap.classList.add('bw-hidden');
   }else{
-    extraWrap.style.display = 'none';
-    manualWrap.style.display = 'flex';
+    extraWrap.classList.add('bw-hidden');
+    manualWrap.classList.remove('bw-hidden');
   }
-  const visibleWrap = cb.checked ? extraWrap : manualWrap;
-  if(visibleWrap.querySelector('.wm-wheel')) wmInitWheels(visibleWrap);
 }
 window.toggleBW = toggleBW;
 
@@ -1442,11 +1448,11 @@ function fieldHTML(exId, setIdx, comp, placeholder){
           <input type="checkbox" data-bwtoggle="${name}" ${wasBW ? 'checked' : ''} onchange="toggleBW('${name}')">
           свой вес
         </label>
-        <div class="field first" id="extraWrap-${name}" style="display:${wasBW ? 'flex' : 'none'}">
+        <div class="field first ${wasBW ? '' : 'bw-hidden'}" id="extraWrap-${name}">
           <input type="number" step="0.5" inputmode="decimal" data-field="${name}" min="0" data-kind="extra"${extraVal} placeholder="0">
           <span>+кг</span>
         </div>
-        <div class="field first" id="manualWrap-${name}" style="display:${wasBW ? 'none' : 'flex'}">
+        <div class="field first ${wasBW ? 'bw-hidden' : ''}" id="manualWrap-${name}">
           <input type="number" step="0.5" inputmode="decimal" data-field="${name}" min="0" data-kind="weight"${manualVal} placeholder="—">
           <span>кг</span>
         </div>
@@ -1537,6 +1543,26 @@ function startWorkoutMode(dayId, exIndex){
 }
 window.startWorkoutMode = startWorkoutMode;
 
+function startWorkoutModeForDay(dayId){
+  const day = getDay(dayId);
+  if(!day || !day.exercises.length) return;
+  for(let exIndex=0; exIndex<day.exercises.length; exIndex++){
+    const ex = day.exercises[exIndex];
+    for(let s=1; s<=ex.sets; s++){
+      const eff = getEffectiveSet(dayId, ex.id, s);
+      if(!eff || !eff.__done){
+        workoutMode = {dayId, exIndex, setIndex: s};
+        render();
+        return;
+      }
+    }
+  }
+  // Everything already marked done — reopen at the very start so there's still somewhere to go.
+  workoutMode = {dayId, exIndex: 0, setIndex: 1};
+  render();
+}
+window.startWorkoutModeForDay = startWorkoutModeForDay;
+
 function exitWorkoutMode(){
   workoutMode = null;
   renderDay(activeTab);
@@ -1578,41 +1604,14 @@ function wmPrevExercise(){
 window.wmPrevExercise = wmPrevExercise;
 
 function wmStep(name, kind, delta, min){
-  const el = document.querySelector(`.wm-hidden-val[data-field="${name}"][data-kind="${kind}"]`);
+  const el = document.querySelector(`[data-field="${name}"][data-kind="${kind}"]`);
   if(!el) return;
   const cur = el.value === '' ? 0 : Number(el.value);
   let next = Math.round((cur + delta) * 100) / 100;
   if(next < (min || 0)) next = (min || 0);
   el.value = next;
-  const wheel = document.querySelector(`.wm-wheel[data-target-name="${name}"][data-target-kind="${kind}"]`);
-  if(wheel){
-    const wmin = Number(wheel.dataset.min);
-    const wstep = Number(wheel.dataset.step);
-    const idx = Math.round((next - wmin) / wstep);
-    const cell = wheel.querySelector(`[data-index="${idx}"]`);
-    if(cell && cell.scrollIntoView) cell.scrollIntoView({inline:'center', block:'nearest'});
-  }
 }
 window.wmStep = wmStep;
-
-function wmWheelHTML(name, kind, min, max, step, current){
-  const decimals = step < 1 ? 1 : 0;
-  const count = Math.round((max - min) / step) + 1;
-  let cells = '';
-  for(let i=0; i<count; i++){
-    const v = min + i*step;
-    const vStr = decimals ? v.toFixed(1) : String(Math.round(v));
-    cells += `<div class="wm-wheel-cell" data-index="${i}">${vStr}</div>`;
-  }
-  const curNum = (current === '' || current == null) ? min : Number(current);
-  let curIndex = Math.round((curNum - min) / step);
-  if(curIndex < 0) curIndex = 0;
-  if(curIndex > count - 1) curIndex = count - 1;
-  return `<div class="wm-wheel-wrap">
-    <div class="wm-wheel-center-marker"></div>
-    <div class="wm-wheel" data-target-name="${name}" data-target-kind="${kind}" data-min="${min}" data-step="${step}" data-decimals="${decimals}" data-init-index="${curIndex}">${cells}</div>
-  </div>`;
-}
 
 function wmFieldHTML(exId, setIdx, comp, placeholder){
   const name = `${exId}__${setIdx}__${comp.key}`;
@@ -1630,23 +1629,21 @@ function wmFieldHTML(exId, setIdx, comp, placeholder){
       свой вес
     </label>`;
     weightBlockHTML = `
-      <div class="wm-stepper" id="extraWrap-${name}" style="display:${wasBW ? 'flex' : 'none'}">
+      <div class="wm-stepper ${wasBW ? '' : 'bw-hidden'}" id="extraWrap-${name}">
         <div class="wm-stepper-label">+кг</div>
         <div class="wm-stepper-controls">
-          <button type="button" onclick="wmStep('${name}','extra',-0.5)">−</button>
-          ${wmWheelHTML(name, 'extra', 0, 50, 0.5, extraVal)}
-          <button type="button" onclick="wmStep('${name}','extra',0.5)">+</button>
+          <button type="button" class="wm-step-btn" data-step-target="${name}" data-step-kind="extra" data-step-delta="-0.5">−</button>
+          <input type="number" step="0.5" min="0" inputmode="decimal" class="wm-num" data-field="${name}" data-kind="extra" value="${extraVal}" placeholder="0">
+          <button type="button" class="wm-step-btn" data-step-target="${name}" data-step-kind="extra" data-step-delta="0.5">+</button>
         </div>
-        <input type="hidden" class="wm-hidden-val" data-field="${name}" data-kind="extra" value="${extraVal}">
       </div>
-      <div class="wm-stepper" id="manualWrap-${name}" style="display:${wasBW ? 'none' : 'flex'}">
+      <div class="wm-stepper ${wasBW ? 'bw-hidden' : ''}" id="manualWrap-${name}">
         <div class="wm-stepper-label">кг</div>
         <div class="wm-stepper-controls">
-          <button type="button" onclick="wmStep('${name}','weight',-0.5)">−</button>
-          ${wmWheelHTML(name, 'weight', 0, 150, 0.5, manualVal)}
-          <button type="button" onclick="wmStep('${name}','weight',0.5)">+</button>
+          <button type="button" class="wm-step-btn" data-step-target="${name}" data-step-kind="weight" data-step-delta="-0.5">−</button>
+          <input type="number" step="0.5" min="0" inputmode="decimal" class="wm-num" data-field="${name}" data-kind="weight" value="${manualVal}" placeholder="—">
+          <button type="button" class="wm-step-btn" data-step-target="${name}" data-step-kind="weight" data-step-delta="0.5">+</button>
         </div>
-        <input type="hidden" class="wm-hidden-val" data-field="${name}" data-kind="weight" value="${manualVal}">
       </div>`;
   }else{
     const weightVal = (placeholder && placeholder.weight != null) ? placeholder.weight : '';
@@ -1654,11 +1651,10 @@ function wmFieldHTML(exId, setIdx, comp, placeholder){
       <div class="wm-stepper">
         <div class="wm-stepper-label">кг</div>
         <div class="wm-stepper-controls">
-          <button type="button" onclick="wmStep('${name}','weight',-0.5)">−</button>
-          ${wmWheelHTML(name, 'weight', 0, 150, 0.5, weightVal)}
-          <button type="button" onclick="wmStep('${name}','weight',0.5)">+</button>
+          <button type="button" class="wm-step-btn" data-step-target="${name}" data-step-kind="weight" data-step-delta="-0.5">−</button>
+          <input type="number" step="0.5" min="0" inputmode="decimal" class="wm-num" data-field="${name}" data-kind="weight" value="${weightVal}" placeholder="—">
+          <button type="button" class="wm-step-btn" data-step-target="${name}" data-step-kind="weight" data-step-delta="0.5">+</button>
         </div>
-        <input type="hidden" class="wm-hidden-val" data-field="${name}" data-kind="weight" value="${weightVal}">
       </div>`;
   }
   const repsVal = (placeholder && placeholder.reps != null) ? placeholder.reps : '';
@@ -1666,11 +1662,10 @@ function wmFieldHTML(exId, setIdx, comp, placeholder){
     <div class="wm-stepper">
       <div class="wm-stepper-label">повт</div>
       <div class="wm-stepper-controls">
-        <button type="button" onclick="wmStep('${name}','reps',-1)">−</button>
-        ${wmWheelHTML(name, 'reps', 0, 40, 1, repsVal)}
-        <button type="button" onclick="wmStep('${name}','reps',1)">+</button>
+        <button type="button" class="wm-step-btn" data-step-target="${name}" data-step-kind="reps" data-step-delta="-1">−</button>
+        <input type="number" min="0" inputmode="numeric" class="wm-num" data-field="${name}" data-kind="reps" value="${repsVal}" placeholder="—">
+        <button type="button" class="wm-step-btn" data-step-target="${name}" data-step-kind="reps" data-step-delta="1">+</button>
       </div>
-      <input type="hidden" class="wm-hidden-val" data-field="${name}" data-kind="reps" value="${repsVal}">
     </div>`;
   return `
     <div class="wm-comp-label">${escapeHTML(comp.label || 'Результат')} <span class="wm-target">${escapeHTML(comp.target)}</span></div>
@@ -1679,44 +1674,31 @@ function wmFieldHTML(exId, setIdx, comp, placeholder){
   `;
 }
 
-function wmMarkWheelCenter(wheel){
-  if(typeof document.elementFromPoint !== 'function') return null;
-  const rect = wheel.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
-  const el = document.elementFromPoint(cx, cy);
-  const cell = el ? el.closest('.wm-wheel-cell') : null;
-  wheel.querySelectorAll('.wm-wheel-cell').forEach(c => c.classList.remove('wm-wheel-center'));
-  if(cell) cell.classList.add('wm-wheel-center');
-  return cell;
-}
-
-function wmSyncHiddenFromWheel(wheel){
-  const cell = wmMarkWheelCenter(wheel);
-  if(!cell) return;
-  const idx = Number(cell.dataset.index);
-  const min = Number(wheel.dataset.min);
-  const step = Number(wheel.dataset.step);
-  const decimals = Number(wheel.dataset.decimals);
-  const v = min + idx * step;
-  const vStr = decimals ? v.toFixed(1) : String(Math.round(v));
-  const name = wheel.dataset.targetName;
-  const kind = wheel.dataset.targetKind;
-  const hidden = document.querySelector(`.wm-hidden-val[data-field="${name}"][data-kind="${kind}"]`);
-  if(hidden) hidden.value = vStr;
-}
-
-function wmInitWheels(container){
-  container.querySelectorAll('.wm-wheel').forEach(wheel=>{
-    const idx = Number(wheel.dataset.initIndex);
-    const cell = wheel.querySelector(`[data-index="${idx}"]`);
-    if(cell && cell.scrollIntoView) cell.scrollIntoView({inline:'center', block:'nearest'});
-    wmMarkWheelCenter(wheel);
-    let timer = null;
-    wheel.addEventListener('scroll', ()=>{
-      clearTimeout(timer);
-      timer = setTimeout(()=> wmSyncHiddenFromWheel(wheel), 120);
-    });
+// Tap = one nudge. Press and hold = repeats, speeding up after the first beat — reliable
+// blind-by-feel input, unlike a precise swipe gesture.
+function wmWireHoldButtons(container){
+  container.querySelectorAll('.wm-step-btn').forEach(btn=>{
+    const name = btn.dataset.stepTarget;
+    const kind = btn.dataset.stepKind;
+    const delta = Number(btn.dataset.stepDelta);
+    let holdTimer = null;
+    let holding = false;
+    const fire = () => wmStep(name, kind, delta);
+    const start = (e) => {
+      e.preventDefault();
+      holding = true;
+      fire();
+      holdTimer = setTimeout(function repeat(){
+        if(!holding) return;
+        fire();
+        holdTimer = setTimeout(repeat, 90);
+      }, 450);
+    };
+    const stop = () => { holding = false; clearTimeout(holdTimer); };
+    btn.addEventListener('pointerdown', start);
+    btn.addEventListener('pointerup', stop);
+    btn.addEventListener('pointerleave', stop);
+    btn.addEventListener('pointercancel', stop);
   });
 }
 
@@ -1766,9 +1748,10 @@ function renderWorkoutMode(){
   `;
 
   mainEl.innerHTML = html;
-  wmInitWheels(mainEl);
+  wmWireHoldButtons(mainEl);
   domDayId = dayId;
-  saveBar.style.display = 'flex';
+  document.body.classList.add('wm-active');
+  saveBar.style.display = 'none';
 }
 
 function renderDay(dayId){
@@ -1776,6 +1759,7 @@ function renderDay(dayId){
   const day = getDay(dayId);
   if(!day){
     domDayId = null;
+    document.body.classList.remove('wm-active');
     mainEl.innerHTML = '<div class="empty">День не найден</div>';
     saveBar.style.display = 'none';
     return;
@@ -1790,9 +1774,25 @@ function renderDay(dayId){
       <button type="button" class="edit-toggle-btn ${dayEditMode ? 'active' : ''}" id="editModeBtn">${dayEditMode ? 'Готово' : 'Редактировать день'}</button>
     </div>
     ${dayEditMode ? `<div class="day-delete-row">
+      <button type="button" class="day-delete-btn" onclick="requestClearAllExercises('${dayId}', this)">Удалить все упражнения</button>
       <button type="button" class="day-delete-btn" onclick="requestDeleteDay('${dayId}', this)">Удалить весь день «${escapeHTML(day.label)}»</button>
     </div>` : ''}
   `;
+
+  if(!dayEditMode){
+    let totalSets = 0, doneSets = 0;
+    day.exercises.forEach(ex=>{
+      totalSets += ex.sets;
+      for(let s=1; s<=ex.sets; s++){
+        const eff = getEffectiveSet(dayId, ex.id, s);
+        if(eff && eff.__done) doneSets++;
+      }
+    });
+    html += `<button type="button" class="wm-day-start-btn" onclick="startWorkoutModeForDay('${dayId}')">
+      🏋 Начать тренировку
+      <span class="wm-day-start-sub">${doneSets} из ${totalSets} подходов выполнено</span>
+    </button>`;
+  }
 
   day.exercises.forEach((ex, exIndex)=>{
     const primaryComp = ex.components.find(c=>c.weight && !c.time);
@@ -1868,6 +1868,7 @@ function renderDay(dayId){
   domDayId = dayId;
   document.getElementById('dateInput').onchange = (e)=>{ currentDate = e.target.value; };
   document.getElementById('editModeBtn').onclick = ()=>{ dayEditMode = !dayEditMode; renderDay(dayId); };
+  document.body.classList.remove('wm-active');
   saveBar.style.display = 'flex';
 
   mainEl.querySelectorAll('[data-doneref]').forEach(cb=>{
@@ -1967,6 +1968,38 @@ function requestDeleteDay(dayId, btn){
   btn.classList.add('confirming');
 }
 window.requestDeleteDay = requestDeleteDay;
+
+function requestClearAllExercises(dayId, btn){
+  if(btn.dataset.confirming === '1'){
+    clearAllExercises(dayId);
+    return;
+  }
+  btn.dataset.confirming = '1';
+  btn.dataset.idleText = 'Удалить все упражнения';
+  btn.textContent = 'Точно удалить все упражнения? Ещё раз';
+  btn.classList.add('confirming');
+}
+window.requestClearAllExercises = requestClearAllExercises;
+
+function clearAllExercises(dayId){
+  const day = getDay(dayId);
+  if(!day) return;
+  if(!day.exercises.length){ showToast('В этом дне уже нет упражнений'); return; }
+  const removed = day.exercises;
+  const now = Date.now();
+  removed.forEach(ex=>{ store.deletedExercises[dayId+'::'+ex.id] = now; });
+  day.exercises = [];
+  expandedExerciseByDay[dayId] = null;
+  saveStore(store);
+  renderDay(dayId);
+  showUndoToast(`Все упражнения дня «${day.label}» удалены.`, ()=>{
+    removed.forEach(ex=>{ delete store.deletedExercises[dayId+'::'+ex.id]; });
+    day.exercises = removed;
+    saveStore(store);
+    renderDay(dayId);
+  });
+}
+window.clearAllExercises = clearAllExercises;
 
 function deleteDay(dayId){
   if(store.dayOrder.length <= 1){
@@ -2583,6 +2616,7 @@ function findSessionIndexByKey(key){
 function renderHistory(){
   captureOutgoingDraft();
   domDayId = null;
+  document.body.classList.remove('wm-active');
   saveBar.style.display = 'none';
   const sessions = [...store.sessions].sort((a,b)=> a.date < b.date ? 1 : -1);
 
@@ -2677,27 +2711,20 @@ function renderHistory(){
     if(deleteBtn){
       deleteBtn.onclick = (e)=>{
         e.stopPropagation();
-        if(deleteBtn.dataset.confirming === '1'){
-          const i = findSessionIndexByKey(originalKey);
-          if(i === -1){ showToast('Запись уже удалена'); renderHistory(); return; }
-          const removed = store.sessions[i];
-          const key = sessionKeyOf(removed);
-          store.sessions.splice(i, 1);
-          store.deletedSessions[key] = Date.now();
+        const i = findSessionIndexByKey(originalKey);
+        if(i === -1){ showToast('Запись уже удалена'); renderHistory(); return; }
+        const removed = store.sessions[i];
+        const key = sessionKeyOf(removed);
+        store.sessions.splice(i, 1);
+        store.deletedSessions[key] = Date.now();
+        saveStore(store);
+        renderHistory();
+        showUndoToast('Запись удалена.', ()=>{
+          delete store.deletedSessions[key];
+          if(findSessionIndexByKey(key) === -1) store.sessions.push(removed);
           saveStore(store);
           renderHistory();
-          showUndoToast('Запись удалена.', ()=>{
-            delete store.deletedSessions[key];
-            if(findSessionIndexByKey(key) === -1) store.sessions.push(removed);
-            saveStore(store);
-            renderHistory();
-          });
-          return;
-        }
-        deleteBtn.dataset.confirming = '1';
-        deleteBtn.dataset.idleText = 'удалить запись';
-        deleteBtn.textContent = 'точно? ещё раз';
-        deleteBtn.classList.add('confirming');
+        });
       };
     }
     if(shareBtn){
