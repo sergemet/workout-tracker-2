@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -798,9 +797,9 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 .history-item{
   background:var(--card);
   border:1px solid var(--line);
-  border-radius:10px;
-  padding:12px 14px;
-  margin-bottom:10px;
+  border-radius:12px;
+  padding:16px 16px;
+  margin-bottom:12px;
 }
 .history-item .hi-top{
   display:flex;
@@ -811,69 +810,73 @@ main{padding:16px;max-width:640px;margin:0 auto;}
 .history-item .hi-date{
   font-family:'Oswald',sans-serif;
   font-weight:600;
-  font-size:14px;
+  font-size:18px;
 }
 .history-item .hi-day{
   color:var(--rust);
-  font-size:12px;
+  font-size:15px;
   font-weight:600;
   text-transform:uppercase;
 }
 .history-item .hi-tonnage{
   color:var(--muted);
-  font-size:12px;
+  font-size:15px;
 }
 .history-item .hi-detail{
-  margin-top:10px;
-  padding-top:10px;
+  margin-top:12px;
+  padding-top:12px;
   border-top:1px solid var(--line);
-  font-size:12.5px;
+  font-size:15px;
   color:var(--muted);
   display:none;
 }
 .history-item .hi-detail.open{display:block;}
-.history-item .hi-detail div{margin-bottom:4px;}
+.history-item .hi-detail div{margin-bottom:6px;}
 .history-item .hi-detail b{color:var(--text);font-weight:500;}
-.hi-editrow{margin-top:8px;}
+.hi-editrow{margin-top:12px;}
 .hi-actions{
   display:flex;
-  gap:16px;
+  gap:10px;
+  flex-wrap:wrap;
 }
 .hi-edit-btn, .hi-share-btn, .hi-delete-btn{
-  background:none;
-  border:none;
+  background:var(--card-2);
+  border:1px solid var(--line);
   color:var(--steel);
-  font-size:11.5px;
-  padding:0;
+  font-size:15px;
+  padding:11px 15px;
+  border-radius:10px;
   cursor:pointer;
   font-family:'Inter',sans-serif;
+  touch-action:manipulation;
 }
-.hi-share-btn{color:var(--rust);}
-.hi-delete-btn{color:var(--rust);}
-.hi-delete-btn.confirming{color:#fff;background:var(--rust);padding:2px 6px;border-radius:5px;}
+.hi-share-btn{color:var(--rust);border-color:var(--rust-dim);}
+.hi-delete-btn{color:var(--rust);border-color:var(--rust-dim);}
+.hi-delete-btn.confirming{color:#fff;background:var(--rust);}
 .hi-edit-form{
   display:none;
   align-items:center;
-  gap:8px;
-  margin-top:8px;
+  gap:10px;
+  margin-top:10px;
+  flex-wrap:wrap;
 }
 .hi-edit-form.open{display:flex;}
 .hi-edit-form input[type="date"]{
   background:var(--card-2);
   border:1px solid var(--line);
   color:var(--text);
-  border-radius:7px;
-  padding:6px 8px;
+  border-radius:9px;
+  padding:10px 12px;
   font-family:'Inter',sans-serif;
-  font-size:13px;
+  font-size:16px;
 }
 .hi-edit-form button{
   background:var(--steel);
   color:#fff;
   border:none;
-  border-radius:7px;
-  padding:6px 10px;
-  font-size:12px;
+  border-radius:9px;
+  padding:11px 16px;
+  font-size:15px;
   cursor:pointer;
   font-family:'Inter',sans-serif;
 }
