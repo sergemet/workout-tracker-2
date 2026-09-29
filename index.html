@@ -1063,6 +1063,7 @@ function ensureStoreDefaults(s){
   if(!s.deletedDays) s.deletedDays = {};
   if(!s.deletedExercises) s.deletedExercises = {};
   if(!s.deletedSessions) s.deletedSessions = {};
+  if(!s.drafts) s.drafts = {};
   if(!s.sessions) s.sessions = [];
   if(!s.lastByDay) s.lastByDay = {};
   if(!s.records) s.records = {};
@@ -1322,16 +1323,12 @@ function toggleExpandExercise(dayId, exId){
 }
 window.toggleExpandExercise = toggleExpandExercise;
 
-// Session-only cache of live, not-yet-saved form values per day, so switching tabs
-// (or triggering a re-render via any edit action) never silently discards typed input.
-// Structure matches store.lastByDay[dayId]: {exId: {setNum: {compKey: entry}}}.
-let drafts = {};
 // Which day's fields are actually sitting in the DOM right now (or null for history/add-day).
 let domDayId = null;
 
 function captureOutgoingDraft(){
   if(domDayId){
-    try{ drafts[domDayId] = collectDayData(domDayId).data; }catch(e){}
+    try{ store.drafts[domDayId] = collectDayData(domDayId).data; }catch(e){}
   }
 }
 
@@ -1527,7 +1524,7 @@ function addExerciseFormHTML(dayId){
 }
 
 function getEffectiveSet(dayId, exId, setNum){
-  const draftSet = drafts[dayId] && drafts[dayId][exId] && drafts[dayId][exId][setNum];
+  const draftSet = store.drafts[dayId] && store.drafts[dayId][exId] && store.drafts[dayId][exId][setNum];
   if(draftSet && Object.keys(draftSet).length) return draftSet;
   return store.lastByDay[dayId] && store.lastByDay[dayId][exId] && store.lastByDay[dayId][exId][setNum];
 }
@@ -1932,11 +1929,11 @@ function deleteSet(dayId, exId, setIndex){
   // Capture whatever is live in the DOM right now (still under the OLD numbering)
   // before anything shifts, so typed-but-unsaved values move with the reindex too.
   if(domDayId === dayId){
-    try{ drafts[dayId] = collectDayData(dayId).data; }catch(e){ drafts[dayId] = drafts[dayId] || {}; }
+    try{ store.drafts[dayId] = collectDayData(dayId).data; }catch(e){ store.drafts[dayId] = store.drafts[dayId] || {}; }
   }
   if(!store.lastByDay[dayId]) store.lastByDay[dayId] = {};
 
-  reindexSetsAfterDelete(drafts[dayId], exId, setIndex);
+  reindexSetsAfterDelete(store.drafts[dayId], exId, setIndex);
   reindexSetsAfterDelete(store.lastByDay[dayId], exId, setIndex);
 
   ex.sets -= 1;
@@ -2015,7 +2012,7 @@ function deleteDay(dayId){
   store.dayOrder = store.dayOrder.filter(id=>id!==dayId);
   delete store.program[dayId];
   delete store.lastByDay[dayId];
-  delete drafts[dayId];
+  delete store.drafts[dayId];
   store.deletedDays[dayId] = Date.now();
   saveStore(store);
   activeTab = store.dayOrder[0];
@@ -2114,7 +2111,7 @@ function collectDayData(dayId){
   const day = getDay(dayId);
   if(!day) return {data:{}, hasAny:false};
   const bw = currentBW();
-  const dayDraft = drafts[dayId] || {};
+  const dayDraft = store.drafts[dayId] || {};
   const data = {};
   let hasAny = false;
   day.exercises.forEach(ex=>{
@@ -2881,6 +2878,29 @@ async function syncWithCloud(isInitial){
     cloudSyncInProgress = false;
   }
 }
+
+// Anything typed or toggled (weight, reps, свой вес, выполнено) gets captured into
+// store.drafts and persisted almost immediately — not just when some other action
+// happens to trigger a re-render. Otherwise a result entered ahead of time (before the
+// actual workout) only ever lived in the DOM and vanished the moment the Mini App was
+// fully closed, since nothing had prompted a save yet. Delegated on `mainEl` itself
+// (which never gets replaced, only its contents) so this stays wired across every
+// render without needing to be re-attached each time.
+let draftPersistTimer = null;
+function scheduleDraftPersist(){
+  if(!domDayId) return;
+  clearTimeout(draftPersistTimer);
+  draftPersistTimer = setTimeout(()=>{
+    try{ store.drafts[domDayId] = collectDayData(domDayId).data; }catch(e){ return; }
+    saveStore(store);
+  }, 500);
+}
+mainEl.addEventListener('input', (e)=>{
+  if(e.target.matches && e.target.matches('[data-field]')) scheduleDraftPersist();
+});
+mainEl.addEventListener('change', (e)=>{
+  if(e.target.matches && (e.target.matches('[data-bwtoggle]') || e.target.matches('[data-doneref]'))) scheduleDraftPersist();
+});
 
 async function init(){
   store = loadLocalStore();
