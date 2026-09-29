@@ -2668,9 +2668,18 @@ function renderHistory(){
     </div>`;
   });
   mainEl.innerHTML = html;
-  document.getElementById('progressSelect').onchange = (e)=> renderProgressChart(e.target.value);
-  renderProgressChart(opts[0].value);
-  wireShareChartBtn();
+  // If chart-building throws for any reason (a CDN script blocked or slow to load on a
+  // flaky connection, say), it must never be able to take the per-record buttons below
+  // down with it — those are wired in a separate step further down specifically so a
+  // chart failure can't leave "удалить запись" etc. silently dead.
+  try{
+    document.getElementById('progressSelect').onchange = (e)=> renderProgressChart(e.target.value);
+    renderProgressChart(opts[0].value);
+    wireShareChartBtn();
+  }catch(err){
+    const wrap = document.getElementById('chartWrap');
+    if(wrap) wrap.innerHTML = '<div class="empty">График сейчас не строится — остальное работает как обычно.</div>';
+  }
 
   // Deliberately not holding onto the session objects `s` themselves in these closures:
   // a background cloud resync (mergeStores) can replace `store` — and every object inside
